@@ -12,7 +12,9 @@
   const LAUNCH = '2026-11-19';
   const STORE = 'vexdle:v1';
   const params = new URLSearchParams(location.search);
-  const DEBUG = params.has('debug'); // unlimited rolls, nothing saved
+  const DEBUG = params.has('debug'); // unlimited fast rolls, nothing saved
+  const TEST = params.has('test');   // unlimited rolls with the full daily animation, daily roll not used up
+  const UNLIMITED = DEBUG || TEST;
 
   // ---------- day (resets at midnight Eastern) ----------
   const dayKey = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
@@ -29,7 +31,7 @@
   const rollSlots = () => Array.from({ length: 6 }, () => POOL[rnd(POOL.length)]);
   function score(slots) {
     const ctx = buildCtx(slots);
-    const hits = COMBOS.filter(c => c.test(ctx)).map(c => ({ c, xp: comboXp(c) })).sort((a, b) => b.xp - a.xp);
+    const hits = COMBOS.filter(c => c.test(ctx)).map(c => ({ c, xp: comboXp(c) })).sort((a, b) => a.xp - b.xp); // worst -> best
     const itemXp = slots.reduce((a, i) => a + i.xp, 0);
     const cXp = hits.reduce((a, h) => a + h.xp, 0);
     const total = itemXp + cXp;
@@ -63,7 +65,7 @@
       <div class="body">
         <span class="chip ${item.cat}">${CAT_LABEL[item.cat] || item.cat}</span>
         <div class="name">${item.name}</div>
-        <div class="meta"><span class="xp${item.xp < 0 ? ' neg' : ''}">${item.xp > 0 ? '+' : ''}${item.xp} XP</span><span>${money(item.price)}</span><span>${lbs(item.weight)}</span></div>
+        <div class="meta"><span class="xp${item.xp < 0 ? ' neg' : ''}">${item.xp > 0 ? '+' : ''}${item.xp} XP</span></div>
       </div></div>`;
   }
   const renderSlots = (slots, cls) => { $('#slots').innerHTML = Array.from({ length: 6 }, (_, k) => slotHTML(slots && slots[k], k, cls)).join(''); };
@@ -72,15 +74,64 @@
     return `<li class="combo${xp < 0 ? ' neg' : ''}"><span class="cn">${c.name}${opts.isNew ? '<span class="new">NEW</span>' : ''}</span><span class="cx">${xp > 0 ? '+' : ''}${xp}</span><span class="cd">${c.desc}</span>${opts.times ? `<span class="times">hit ${opts.times}×</span>` : ''}</li>`;
   }
 
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const tierOf = total => { let t = 0; TIERS.forEach((x, k) => { if (x.min == null || total >= x.min) t = k; }); return t; };
+  function setAward(tier, reveal) {
+    $('#awardName').textContent = reveal ? TIERS[tier].name : '…';
+    $('#awardLadder').innerHTML = TIERS.map((t, k) => `<span class="${k < tier ? 'on' : k === tier ? 'cur' : ''}" title="${t.name}"></span>`).join('');
+  }
+  function setTotal(v) { $('#totalXp').textContent = Math.round(v).toLocaleString(); }
+  async function countTo(from, to, ms) {
+    const t0 = performance.now();
+    while (true) {
+      const p = Math.min(1, (performance.now() - t0) / ms);
+      setTotal(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+      setAward(tierOf(from + (to - from) * p), false);
+      if (p >= 1) return; await sleep(30);
+    }
+  }
+
+  // Static result (page reload): everything at once.
   function renderResult(slots, res, newIds = new Set()) {
-    $('#result').classList.remove('hidden');
-    $('#awardName').textContent = TIERS[res.tier].name;
-    $('#awardLadder').innerHTML = TIERS.map((t, k) => `<span class="${k < res.tier ? 'on' : k === res.tier ? 'cur' : ''}" title="${t.name}"></span>`).join('');
-    $('#totalXp').textContent = res.total.toLocaleString();
+    $('#result').classList.remove('hidden', 'revealing');
+    setAward(res.tier, true); $('#award').classList.add('revealed');
+    setTotal(res.total);
     $('#itemXp').textContent = res.itemXp;
     $('#comboXp').textContent = res.comboXp.toLocaleString();
     $('#comboCount').textContent = res.hits.length;
     $('#comboList').innerHTML = res.hits.length ? res.hits.map(h => comboHTML(h.c, h.xp, { isNew: newIds.has(h.c.id) })).join('') : '<li class="muted">No combos this time.</li>';
+    $('#shareBtn').onclick = () => share(slots, res);
+  }
+
+  // Dramatic result: item XP first, then combos one at a time from worst to best, award last.
+  async function revealResult(slots, res, newIds, slow) {
+    const r = $('#result');
+    r.classList.remove('hidden'); r.classList.add('revealing'); $('#award').classList.remove('revealed');
+    $('#comboList').innerHTML = ''; setTotal(0); setAward(0, false);
+    $('#itemXp').textContent = res.itemXp; $('#comboXp').textContent = '0'; $('#comboCount').textContent = '0';
+    r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    await sleep(slow ? 900 : 400);
+    await countTo(0, res.itemXp, slow ? 900 : 400);
+    let running = res.itemXp, cx = 0;
+    if (!res.hits.length) $('#comboList').innerHTML = '<li class="muted">No combos this time.</li>';
+    for (let k = 0; k < res.hits.length; k++) {
+      const h = res.hits[k];
+      const last = k === res.hits.length - 1;
+      const big = h.xp >= 100 || h.xp <= -100;
+      await sleep(slow ? (last ? 1400 : big ? 1100 : 650) : 250);
+      const tpl = document.createElement('template');
+      tpl.innerHTML = comboHTML(h.c, h.xp, { isNew: newIds.has(h.c.id) });
+      const el = tpl.content.firstElementChild; el.classList.add('appear'); if (big) el.classList.add('big');
+      $('#comboList').appendChild(el);
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      cx += h.xp; $('#comboXp').textContent = cx.toLocaleString(); $('#comboCount').textContent = k + 1;
+      await countTo(running, running + h.xp, slow ? (big ? 700 : 350) : 150);
+      running += h.xp;
+    }
+    await sleep(slow ? 1000 : 300);
+    setAward(res.tier, true); $('#award').classList.add('revealed');
+    r.classList.remove('revealing');
+    $('#award').scrollIntoView({ behavior: 'smooth', block: 'center' });
     $('#shareBtn').onclick = () => share(slots, res);
   }
 
@@ -96,7 +147,8 @@
   const EMOJI = { structure: '⬜', motion: '⚙️', hardware: '🔩', electronics: '🔌', pneumatics: '💨', tools: '🔧', kit: '📦', field: '🟩', manual: '📘', element: '🟠', meme: '💀', empty: '⬛' };
   function share(slots, res) {
     const row = slots.map(i => i.id === 'override-game-manual-v0-1' ? '🚫' : EMOJI[i.cat]).join('');
-    const best = res.hits[0] ? `\nBest combo: ${res.hits[0].c.name} (+${res.hits[0].xp})` : '';
+    const top = res.hits[res.hits.length - 1];
+    const best = top && top.xp > 0 ? `\nBest combo: ${top.c.name} (+${top.xp})` : '';
     const text = `VEXdle #${dayNum(TODAY)} · ${TIERS[res.tier].name}\n${res.total.toLocaleString()} XP · ${res.hits.length} combos\n${row}${best}\n${location.origin}${location.pathname}`;
     const done = () => { const t = $('#shareToast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); };
     if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => prompt('Copy your result:', text)); else prompt('Copy your result:', text);
@@ -104,38 +156,48 @@
 
   // ---------- roll animation ----------
   function preload(items) { return Promise.all(items.filter(i => i.img).map(i => new Promise(r => { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.onload = im.onerror = r; im.src = i.img; setTimeout(r, 2500); }))); }
-  async function animateRoll(final) {
+  // One slot at a time: each spins, slows down, hesitates, then locks in.
+  async function animateRoll(final, slow) {
     const btn = $('#rollBtn'); btn.disabled = true; btn.textContent = 'Rolling…';
-    await preload(final);
+    $('#result').classList.add('hidden');
+    const spinPool = Array.from({ length: 28 }, () => POOL[rnd(POOL.length)]);
+    await preload(final.concat(spinPool));
     renderSlots(null);
-    const slotsEl = () => [...document.querySelectorAll('.slot')];
-    const locked = new Array(6).fill(false);
-    const start = performance.now();
-    await new Promise(resolve => {
-      const tick = () => {
-        const t = performance.now() - start;
-        slotsEl().forEach((el, k) => {
-          if (locked[k]) return;
-          const stopAt = 700 + k * 380;
-          const html = t >= stopAt ? slotHTML(final[k], k, 'locked') : slotHTML(POOL[rnd(POOL.length)], k, 'spinning');
-          if (t >= stopAt) locked[k] = true;
-          el.outerHTML = html;
-        });
-        if (locked.every(Boolean)) resolve(); else setTimeout(tick, 85);
-      };
-      tick();
-    });
+    const slotEl = k => document.querySelectorAll('.slot')[k];
+    for (let k = 0; k < 6; k++) {
+      const maxDelay = slow ? 560 : 240;
+      let delay = slow ? 50 : 40, prev = null;
+      slotEl(k).classList.add('up-next');
+      await sleep(slow ? 450 : 120);
+      while (delay < maxDelay) {
+        let pick; do { pick = spinPool[rnd(spinPool.length)]; } while (pick === prev);
+        prev = pick;
+        const tense = delay > maxDelay * 0.45 ? ' tense' : '';
+        slotEl(k).outerHTML = slotHTML(pick, k, 'spinning' + tense);
+        await sleep(delay);
+        delay *= slow ? 1.12 : 1.18;
+      }
+      // the hesitation before it lands
+      slotEl(k).classList.add('tense');
+      await sleep(slow ? 650 : 150);
+      slotEl(k).outerHTML = slotHTML(final[k], k, 'locked');
+      const it = final[k];
+      const special = it.xp >= 60 || it.xp < 0;
+      await sleep(slow ? (special ? 1300 : 800) : 250);
+    }
   }
 
   async function doRoll() {
     const slots = rollSlots();
-    await animateRoll(slots);
     const res = score(slots);
     const newIds = new Set(res.hits.filter(h => !state.found[h.c.id]).map(h => h.c.id));
+    // save first, so a refresh mid-animation can't give a second daily roll
     res.hits.forEach(h => { state.found[h.c.id] = (state.found[h.c.id] || 0) + 1; });
-    if (!DEBUG) state.rolls[TODAY] = { ids: slots.map(s => s.id), total: res.total, tier: res.tier };
+    if (!UNLIMITED) state.rolls[TODAY] = { ids: slots.map(s => s.id), total: res.total, tier: res.tier };
     save(state);
-    renderResult(slots, res, newIds);
+    const slow = !DEBUG; // the daily roll takes its time
+    await animateRoll(slots, slow);
+    await revealResult(slots, res, newIds, slow);
     renderCollection();
     updateButton();
   }
@@ -143,6 +205,7 @@
   function updateButton() {
     const btn = $('#rollBtn');
     if (DEBUG) { btn.disabled = false; btn.textContent = 'Roll again (debug)'; $('#rollNote').textContent = 'Debug mode: unlimited rolls, nothing is saved.'; return; }
+    if (TEST) { btn.disabled = false; btn.textContent = 'Roll again (test)'; $('#rollNote').textContent = 'Test mode: roll as many times as you want. Your daily roll is not used up.'; return; }
     if (state.rolls[TODAY]) { btn.disabled = true; btn.textContent = 'Rolled for today'; tickCountdown(); }
     else { btn.disabled = false; btn.textContent = "Roll today's 6"; }
   }
@@ -167,7 +230,7 @@
   $('#comboTotal').textContent = COMBOS.length;
   $('#ladderList').innerHTML = TIERS.map(t => `<li>${t.name}<span>${t.min == null ? 'lowest scores' : t.min.toLocaleString() + '+ XP'}</span></li>`).join('') + '<li>Worlds Excellence<span>the day\'s #1 roll on the leaderboard</span></li>';
   $('#rollBtn').addEventListener('click', doRoll);
-  const today = !DEBUG && state.rolls[TODAY];
+  const today = !UNLIMITED && state.rolls[TODAY];
   if (today) {
     const slots = today.ids.map(id => BY_ID[id] || EMPTY);
     renderSlots(slots);
