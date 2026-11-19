@@ -31,7 +31,9 @@
 
   // ---------- rolling ----------
   function rnd(n) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
-  const rollSlots = () => Array.from({ length: 6 }, () => POOL[rnd(POOL.length)]);
+  // Empty slots can only come first: slot 1 can be empty; after that a slot can only be empty if the one before it was.
+  const FULL = POOL.filter(i => i.cat !== 'empty');
+  const rollSlots = () => { const out = []; for (let k = 0; k < 6; k++) { const canEmpty = k === 0 || out[k - 1].cat === 'empty'; const pool = canEmpty ? POOL : FULL; out.push(pool[rnd(pool.length)]); } return out; };
   function score(slots) {
     const ctx = buildCtx(slots);
     const hits = COMBOS.filter(c => c.test(ctx)).map(c => ({ c, xp: comboXp(c) })).sort((a, b) => a.xp - b.xp); // worst -> best
@@ -186,7 +188,6 @@
     $('#collectionNote').textContent = found.length ? `${found.length} of ${COMBOS.length} combos found. You only see a combo after you've hit it.` : `You haven't found any of the ${COMBOS.length} combos yet. Roll to start.`;
     const list = COMBOS.filter(c => state.found[c.id]).sort((a, b) => comboXp(a) - comboXp(b)); // column-reverse: best ends up on top
     $('#collectionList').innerHTML = list.map(c => comboHTML(c, comboXp(c), { times: state.found[c.id], example: state.examples[c.id] })).join('');
-    $('#guestXp').textContent = Object.values(state.rolls).reduce((a, r) => a + (r.total || 0), 0).toLocaleString();
   }
 
   const EMOJI = { structure: '⬜', motion: '⚙️', hardware: '🔩', electronics: '🔌', pneumatics: '💨', tools: '🔧', kit: '📦', field: '🟩', manual: '📘', element: '🟠', meme: '💀', empty: '⬛' };
@@ -194,7 +195,8 @@
     const row = slots.map(i => i.id === 'override-game-manual-v0-1' ? '🚫' : EMOJI[i.cat]).join('');
     const top = res.hits[res.hits.length - 1];
     const best = top && top.xp > 0 ? `\nBest combo: ${top.c.name} (+${top.xp})` : '';
-    const text = `VEXdle #${dayNum(TODAY)} · ${TIERS[res.tier].name}\n${res.total.toLocaleString()} XP · ${res.hits.length} combos\n${row}${best}\n${location.origin}${location.pathname}`;
+    const who = ME.num ? `Player ${ME.num} · ` : '';
+    const text = `VEXdle #${dayNum(TODAY)} · ${who}${TIERS[res.tier].name}\n${res.total.toLocaleString()} XP · ${res.hits.length} combos\n${row}${best}\n${location.origin}${location.pathname}`;
     const done = () => { const t = $('#shareToast'); t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); };
     if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => prompt('Copy your result:', text)); else prompt('Copy your result:', text);
   }
@@ -240,11 +242,15 @@
     });
     if (!UNLIMITED) state.rolls[TODAY] = { ids: slots.map(s => s.id), total: res.total, tier: res.tier };
     save(state);
+    if (!UNLIMITED && window.VEX_ONLINE) {
+      VEX_ONLINE.submit(slots.map(s => s.id), res.total, res.tier).catch(e => console.warn('save failed', e));
+    }
     const slow = !DEBUG; // the daily roll takes its time
     await animateRoll(slots, slow);
     await revealResult(slots, res, newIds, slow);
     renderCollection();
     updateButton();
+    refreshStanding();
   }
 
   function updateButton() {
@@ -263,10 +269,72 @@
     if (dayKey() !== TODAY) location.reload(); else setTimeout(tickCountdown, 1000);
   }
 
+
+  // ---------- online: player number, standing, leaderboards ----------
+  const ME = { num: null };
+  const tierName = t => (TIERS[t] || TIERS[0]).name;
+  function refreshStanding() {
+    if (!window.VEX_ONLINE) return;
+    VEX_ONLINE.me().then(m => {
+      if (!m) return;
+      ME.num = m.num; $('#meLabel').textContent = `Player ${m.num}`;
+      const parts = [`You're Player ${m.num}`];
+      if (m.total_xp) parts.push(`#${m.total_rank} of ${m.players} all-time (${Number(m.total_xp).toLocaleString()} XP)`);
+      if (m.today_rank) parts.push(m.today_rank === 1 ? `#1 today: Worlds Excellence` : `#${m.today_rank} today`);
+      $('#standingNote').textContent = parts.join(' · ');
+    }).catch(() => { $('#standingNote').textContent = 'Leaderboard is offline right now. Your roll is still saved in this browser.'; });
+  }
+  function miniRoll(ids) {
+    return `<span class="mini-roll">${ids.map(id => { const it = BY_ID[id] || EMPTY; return `<span class="ex-i" title="${it.name.replace(/"/g, '&quot;')}">${it.cat === 'empty' ? '<span class="ex-empty"></span>' : `<img src="${it.img}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`}</span>`; }).join('')}</span>`;
+  }
+  let boardMode = 'total';
+  async function loadBoard() {
+    const el = $('#board'); el.innerHTML = '<li class="muted">Loading…</li>';
+    try {
+      if (boardMode === 'total') {
+        const rows = await VEX_ONLINE.leaderboard(100);
+        $('#boardNote').textContent = 'Total XP from every daily roll. Tap a player to see their rolls.';
+        el.innerHTML = rows.length ? rows.map(r => `<li class="brow${r.num === ME.num ? ' me' : ''}" data-num="${r.num}">
+          <span class="brank">#${r.rank}</span><span class="bname">Player ${r.num}${r.num === ME.num ? ' <em>you</em>' : ''}</span>
+          <span class="bmeta">${r.rolls} roll${r.rolls == 1 ? '' : 's'} · best ${Number(r.best_xp).toLocaleString()}</span>
+          <span class="bxp">${Number(r.total_xp).toLocaleString()}</span><div class="bdetail"></div></li>`).join('') : '<li class="muted">No rolls yet. Be the first!</li>';
+      } else {
+        const rows = await VEX_ONLINE.today(100);
+        $('#boardNote').textContent = "Today's rolls. The #1 roll gets Worlds Excellence. Tap a player to see their roll.";
+        el.innerHTML = rows.length ? rows.map(r => `<li class="brow${r.num === ME.num ? ' me' : ''}" data-num="${r.num}" data-items="${r.items.join(',')}">
+          <span class="brank">#${r.rank}</span><span class="bname">Player ${r.num}${r.num === ME.num ? ' <em>you</em>' : ''}</span>
+          <span class="bmeta">${r.rank === 1 ? 'Worlds Excellence' : tierName(r.tier)}</span>
+          <span class="bxp">${Number(r.xp).toLocaleString()}</span><div class="bdetail"></div></li>`).join('') : '<li class="muted">Nobody has rolled today yet.</li>';
+      }
+    } catch (e) { el.innerHTML = '<li class="muted">Could not load the leaderboard. Try again in a moment.</li>'; }
+  }
+  async function togglePlayer(li) {
+    const d = li.querySelector('.bdetail');
+    if (li.classList.toggle('open') === false) return;
+    if (d.dataset.loaded) return;
+    d.innerHTML = '<span class="muted small">Loading…</span>';
+    try {
+      const rolls = await VEX_ONLINE.playerRolls(+li.dataset.num, 7);
+      d.innerHTML = rolls.map(r => {
+        const slots = r.items.map(id => BY_ID[id] || EMPTY);
+        const res = score(slots);
+        const top = res.hits.slice(-3).reverse().map(h => `${h.c.name} (${h.xp > 0 ? '+' : ''}${h.xp.toLocaleString()})`).join(', ');
+        return `<div class="proll"><div class="proll-h"><span>Day #${dayNum(r.day)}</span><span>${tierName(r.tier)} · ${Number(r.xp).toLocaleString()} XP</span></div>${miniRoll(r.items)}<div class="muted small">${slots.map(i => i.cat === 'empty' ? 'Empty' : i.name).join(' · ')}</div>${top ? `<div class="small">Best combos: ${top}</div>` : ''}</div>`;
+      }).join('') || '<span class="muted small">No rolls yet.</span>';
+      d.dataset.loaded = '1';
+    } catch (e) { d.innerHTML = '<span class="muted small">Could not load their rolls.</span>'; }
+  }
+  document.addEventListener('click', e => {
+    const tab = e.target.closest('.board-tab');
+    if (tab) { boardMode = tab.dataset.board; document.querySelectorAll('.board-tab').forEach(b => b.classList.toggle('active', b === tab)); loadBoard(); return; }
+    const row = e.target.closest('.brow'); if (row && !e.target.closest('.bdetail')) togglePlayer(row);
+  });
+
   // ---------- nav ----------
   document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('.nav-btn').forEach(x => x.classList.toggle('active', x === b));
     document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + b.dataset.view));
+    if (b.dataset.view === 'leaderboard' && window.VEX_ONLINE) loadBoard();
   }));
 
   // ---------- init ----------
@@ -288,6 +356,7 @@
   } else renderSlots(null);
   renderCollection();
   updateButton();
+  if (window.VEX_ONLINE) VEX_ONLINE.register().then(n => { ME.num = n; $('#meLabel').textContent = `Player ${n}`; refreshStanding(); }).catch(() => refreshStanding());
 
   // test hook for screenshots: ?show=id,id,id,id,id,id renders a fixed roll without saving
   if (params.get('show')) {

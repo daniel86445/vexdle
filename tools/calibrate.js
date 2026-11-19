@@ -27,7 +27,8 @@ const EMPTY = ITEMS.find(i => i.cat === 'empty');
 const POOL = ITEMS.filter(i => i.cat !== 'empty').concat([EMPTY, EMPTY, EMPTY]);
 let seed = 12345;
 const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-const roll = () => Array.from({ length: 6 }, () => POOL[Math.floor(rnd() * POOL.length)]);
+const FULL = POOL.filter(i => i.cat !== 'empty');
+const roll = () => { const out = []; for (let k = 0; k < 6; k++) { const pool = (k === 0 || out[k - 1].cat === 'empty') ? POOL : FULL; out.push(pool[Math.floor(rnd() * pool.length)]); } return out; };
 
 const N = +(process.argv[2] || 300000);
 const hits = new Array(COMBOS.length).fill(0);
@@ -40,7 +41,12 @@ for (let r = 0; r < N; r++) {
 
 // XP from rarity: the harder to get, the more XP. XP grows with 1/p^0.55, so a combo that is
 // 100x rarer is worth about 12.6x more. Combos never seen in the sim are treated as rarer than 1 in 2N.
-const OVERRIDE = { 'dup-4': 25000, 'dup-5': 100000, 'dup-6': 500000, 'empty-4': 25000, 'empty-5': 100000, 'empty-6': 500000 };
+const OVERRIDE = { 'dup-4': 25000, 'dup-5': 100000, 'dup-6': 500000 };
+// item-count combos: exact odds. P(empty) per eligible slot = 3/437; k empties then a non-empty.
+const pe = 3 / POOL.length;
+const fromPx = p => Math.max(5, Math.round(10 / Math.pow(p, 0.55)));
+[5, 4, 3, 2].forEach(items => { const k = 6 - items; OVERRIDE['items-' + items] = fromPx(Math.pow(pe, k) * (1 - pe)); });
+OVERRIDE['items-1'] = 1000000; OVERRIDE['items-0'] = 2500000;
 const xpOf = {};
 const fromP = p => Math.max(5, Math.round(10 / Math.pow(p, 0.55)));
 COMBOS.forEach((c, k) => {

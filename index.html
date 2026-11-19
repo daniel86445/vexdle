@@ -8,13 +8,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=d92e4c4b">
+<link rel="stylesheet" href="css/style.css?v=baa4198d">
 </head>
 <body>
 <header class="top">
   <div class="brand">
     <span class="logo">VEX<b>dle</b></span>
     <span class="day" id="dayLabel"></span>
+    <span class="me" id="meLabel"></span>
   </div>
   <nav>
     <button class="nav-btn active" data-view="play">Roll</button>
@@ -32,7 +33,7 @@
     <div class="controls">
       <button id="rollBtn" class="roll-btn">Roll today's 6</button>
       <div id="rollNote" class="roll-note">One roll per day. New roll at midnight Eastern.</div>
-      <div class="guest-note">Playing as a guest. Sign-in and the XP leaderboard come next, and only signed-in rolls will be saved.</div>
+      <div class="guest-note" id="standingNote"></div>
     </div>
 
     <div id="result" class="result hidden">
@@ -64,16 +65,20 @@
   <!-- LEADERBOARD -->
   <section id="view-leaderboard" class="view">
     <h2>Leaderboard</h2>
-    <p class="muted">The public XP leaderboard needs accounts, which are the next build step. Sign in with Google, roll once a day, and your XP adds up here. The day's top roll gets <b>Worlds Excellence</b>.</p>
-    <div class="board-empty">Your guest XP so far: <b id="guestXp">0</b></div>
+    <div class="board-tabs">
+      <button class="board-tab active" data-board="total">All-time XP</button>
+      <button class="board-tab" data-board="today">Today</button>
+    </div>
+    <p class="muted small" id="boardNote"></p>
+    <ol class="board" id="board"></ol>
   </section>
 
   <!-- ABOUT -->
   <section id="view-about" class="view">
     <h2>How to play</h2>
     <ol class="how">
-      <li>You get one roll a day. Each roll fills <b>6 slots</b>.</li>
-      <li>Every slot draws from <b id="poolSize"></b> V5RC/VURC items with equal odds: parts, packs, kits, electronics, fields, game elements, game manuals and a few memes. An <b>empty slot</b> is 3× as likely as any single item.</li>
+      <li>You get one roll a day per browser, and you show up on the leaderboard as <b>Player #</b>. Each roll fills <b>6 slots</b>.</li>
+      <li>Every slot draws from <b id="poolSize"></b> V5RC/VURC items with equal odds: parts, packs, kits, electronics, fields, game elements, game manuals and a few memes. Slot 1 can come up <b>empty</b> (3× as likely as any single item), and each slot after an empty one can be empty too. Fewer items is its own rare combo: a Five-Part Roll is worth 155 XP, a Four-Part Roll 2,406, and it gets huge from there.</li>
       <li>Every part earns XP from a simple formula: a <b>category base</b> (hardware 5, structure and motion 10, electronics 30, fields and kits 40…) plus bonuses for <b>aluminum</b>, <b>high strength</b>, <b>value</b>, <b>pack size</b>, the <b>current season</b> and <b>vintage</b> fields and manuals. Memes and Manual v0.1 cost XP. Hover any card, or check "How your parts scored," to see the math.</li>
       <li>Most XP comes from <b>combos</b>, which are matches based on item type, order, price, weight, size, material, season and more. There are <b id="comboTotal"></b> combos, each worth a fixed amount of XP, and they all stack. The rarer a combo, the more it's worth. You only see a combo once you've hit it.</li>
       <li>Your total XP decides your award, from <i>Didn't Pass Inspection</i> up to <i>World Champion</i>. The day's #1 roll on the leaderboard gets <i>Worlds Excellence</i>.</li>
@@ -85,10 +90,11 @@
   </section>
 </main>
 
-<script src="js/items.js?v=d92e4c4b"></script>
-<script src="js/xp.js?v=d92e4c4b"></script>
-<script src="js/combos.js?v=d92e4c4b"></script>
-<script src="js/combo-xp.js?v=d92e4c4b"></script>
-<script src="js/game.js?v=d92e4c4b"></script>
+<script src="js/items.js?v=baa4198d"></script>
+<script src="js/xp.js?v=baa4198d"></script>
+<script src="js/combos.js?v=baa4198d"></script>
+<script src="js/combo-xp.js?v=baa4198d"></script>
+<script src="js/online.js?v=baa4198d"></script>
+<script src="js/game.js?v=baa4198d"></script>
 </body>
 </html>

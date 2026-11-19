@@ -148,16 +148,15 @@
   def('last-big', 'Saved the Best', 'Slot 6 is the most expensive item', c => c.n === 6 && c.slots[5].price > 0 && c.slots.slice(0, 5).every(s => (s.price || 0) < c.slots[5].price));
 
   // ===== J. empty slots =====
-  def('empty-1', 'Missed a Spot', 'At least one empty slot', c => c.empties >= 1);
-  def('empty-2', 'Half Packed', 'Two empty slots', c => c.empties >= 2);
-  def('empty-3', 'Ghost Town', 'Three empty slots', c => c.empties >= 3);
-  def('empty-4', 'Forgot the Robot', 'Four empty slots', c => c.empties >= 4);
-  def('empty-5', 'Lonely Part', 'Five empty slots', c => c.empties >= 5);
-  def('empty-6', 'No-Show', 'All six slots empty', c => c.empties >= 6);
-  def('empty-first', 'Slow Start', 'Slot 1 is empty', c => c.slots[0].cat === 'empty');
-  def('empty-last', 'Ran Out of Time', 'Slot 6 is empty', c => c.slots[5].cat === 'empty');
-  def('empty-adj', 'Big Gap', 'Two empty slots side by side', c => range(0, 4).some(k => c.slots[k].cat === 'empty' && c.slots[k + 1].cat === 'empty'));
-  def('empty-ends', 'Hollow', 'First and last slots both empty', c => c.slots[0].cat === 'empty' && c.slots[5].cat === 'empty');
+  // Empties can only come first (slot 1, then 2...). Each item count is its own combo: fewer items = rarer = more XP.
+  def('items-5', 'Five-Part Roll', 'Exactly 5 items (one empty slot up front)', c => c.empties === 1);
+  def('items-4', 'Four-Part Roll', 'Exactly 4 items (two empty slots up front)', c => c.empties === 2);
+  def('items-3', 'Three-Part Roll', 'Exactly 3 items', c => c.empties === 3);
+  def('items-2', 'Two-Part Roll', 'Exactly 2 items', c => c.empties === 4);
+  def('items-1', 'Lonely Part', 'Exactly 1 item', c => c.empties === 5);
+  def('items-0', 'No-Show', 'All six slots empty', c => c.empties === 6);
+  def('late-start-power', 'Late but Loud', 'Empty slots up front, then something worth 100+ XP', c => c.empties >= 1 && c.real.some(i => i.xp >= 100));
+  def('late-start-field', 'Late to the Field', 'Empty slots up front, then a field', c => c.empties >= 1 && c.real.some(i => i.cat === 'field'));
   def('empty-bundle', 'Unopened Box', 'An empty slot next to a kit or bundle', c => range(0, 4).some(k => (c.slots[k].cat === 'empty' && c.slots[k + 1].cat === 'kit') || (c.slots[k].cat === 'kit' && c.slots[k + 1].cat === 'empty')));
 
   // ===== K. seasons =====

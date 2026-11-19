@@ -10,6 +10,7 @@
     'full-field-setup': ['Full field', 150], 'portable-competition-field-perimeter': ['Perimeter', 60],
     'championship-event-trophy-pack': ['Trophies', 60], 'qualifying-event-trophy-pack': ['Trophies', 45],
     'v5-pneumatics-kit': ['Full kit', 30], 'robotics-engineering-notebook': ['Notebook', 20],
+    'step-drill-bit': ['Drill bit', 15],
   };
   const SUB_BONUS = { sensor: ['Sensor', 15], motor: ['Motor', 20], cartridge: ['Cartridge', 5], wheel: ['Wheel', 5], gear: ['Gear', 3], 'game-field': ['Game field', 20], cylinder: ['Cylinder', 8], bundle: ['Bundle', 20] };
   const MEME = {
@@ -22,7 +23,7 @@
 
   function parts(i) {
     const p = [];
-    if (i.cat === 'empty') return [['Empty slot', -15]];
+    if (i.cat === 'empty') return [['Empty slot', 0]];
     if (i.id === 'override-game-manual-v0-1') return [['Manual', 15], ['Version 0.1', -515]];
     p.push([CAT_NAME[i.cat], CAT_BASE[i.cat]]);
     if (MEME[i.id] != null) p.push([MEME[i.id] < 0 ? 'Bad luck' : 'Lucky', MEME[i.id]]);
