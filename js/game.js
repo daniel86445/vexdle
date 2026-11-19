@@ -1,4 +1,7 @@
 (function () {
+  function showError(e) { const n = document.getElementById('rollNote'); if (n) { n.textContent = 'Something went wrong: ' + (e && e.message || e) + '. Try reloading the page.'; n.style.color = '#ff6b6b'; } }
+  window.addEventListener('error', ev => showError(ev.error || ev.message));
+  window.addEventListener('unhandledrejection', ev => showError(ev.reason));
   const ITEMS = window.VEX_ITEMS;
   const COMBOS = window.VEX_COMBOS;
   const XP = window.VEX_COMBO_XP;
@@ -197,7 +200,10 @@
   }
 
   // ---------- roll animation ----------
-  function preload(items) { return Promise.all(items.filter(i => i.img).map(i => new Promise(r => { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.onload = im.onerror = r; im.src = i.img; setTimeout(r, 2500); }))); }
+  function preload(items) {
+    const all = Promise.all(items.filter(i => i.img).map(i => new Promise(r => { try { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.onload = im.onerror = r; im.src = i.img; } catch (e) { r(); } setTimeout(r, 1200); })));
+    return Promise.race([all, sleep(1200)]);
+  }
   // One slot at a time: each spins, slows down, hesitates, then locks in.
   async function animateRoll(final, slow) {
     const btn = $('#rollBtn'); btn.disabled = true; btn.textContent = 'Rolling…';
@@ -268,7 +274,12 @@
   $('#poolSize').textContent = (POOL.length - 3).toLocaleString();
   $('#comboTotal').textContent = COMBOS.length;
   $('#ladderList').innerHTML = TIERS.map(t => `<li>${t.name}<span>${t.min == null ? 'lowest scores' : t.min.toLocaleString() + '+ XP'}</span></li>`).join('') + '<li>Worlds Excellence<span>the day\'s #1 roll on the leaderboard</span></li>';
-  $('#rollBtn').addEventListener('click', doRoll);
+  let rolling = false;
+  $('#rollBtn').addEventListener('click', async () => {
+    if (rolling) return; rolling = true;
+    const btn = $('#rollBtn'); btn.disabled = true; btn.textContent = 'Rolling…';
+    try { await doRoll(); } catch (e) { showError(e); updateButton(); } finally { rolling = false; }
+  });
   const today = !UNLIMITED && state.rolls[TODAY];
   if (today) {
     const slots = today.ids.map(id => BY_ID[id] || EMPTY);
