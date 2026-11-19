@@ -43,35 +43,34 @@ h3 { font-family: var(--head); font-size: 22px; margin: 28px 0 10px; }
 .small { font-size: 12px; }
 
 /* slots */
-.slots { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
-@media (max-width: 980px) { .slots { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 560px) { .slots { grid-template-columns: repeat(2, 1fr); } }
+.slots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; max-width: 980px; margin: 0 auto; }
+@media (max-width: 520px) { .slots { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .slot { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
-  display: flex; flex-direction: column; min-height: 290px; transition: transform .2s, border-color .2s; }
-.slot .num { position: absolute; top: 8px; left: 10px; font-family: var(--head); font-weight: 700; color: var(--muted); font-size: 14px; z-index: 2; }
-.slot .imgwrap { position: relative; aspect-ratio: 1 / 1; background: #fff; display: grid; place-items: center; overflow: hidden; }
-.slot img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  display: flex; flex-direction: column; min-height: 0; transition: transform .2s, border-color .2s; }
+.slot .num { position: absolute; top: 5px; left: 7px; text-shadow: 0 0 3px #fff; font-family: var(--head); font-weight: 700; color: var(--muted); font-size: 14px; z-index: 2; }
+.slot .imgwrap { position: relative; aspect-ratio: 4 / 3; background: #fff; display: grid; place-items: center; overflow: hidden; }
+.slot img { width: 100%; height: 100%; object-fit: cover; object-position: center; transform: scale(1.15); display: block; }
 .slot .imgwrap.yt { background: #000; }
 .slot .imgwrap.yt img { object-fit: cover; }
-.slot .body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
-.slot .name { font-weight: 600; font-size: 14px; line-height: 1.25; min-height: 2.5em; }
-.slot .meta { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: 12px; color: var(--muted); margin-top: auto; }
-.slot .xp { font-family: var(--head); font-weight: 700; font-size: 16px; color: var(--gold); }
+.slot .body { padding: 7px 8px 8px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.slot .name { font-weight: 600; font-size: 12px; line-height: 1.25; min-height: 2.5em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.slot .meta { display: flex; flex-wrap: wrap; gap: 2px 6px; font-size: 10.5px; color: var(--muted); margin-top: auto; }
+.slot .xp { font-family: var(--head); font-weight: 700; font-size: 14px; color: var(--gold); }
 .slot .xp.neg { color: var(--neg); }
-.chip { display: inline-block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; padding: 2px 7px; border-radius: 6px; background: var(--panel-2); color: var(--muted); align-self: flex-start; }
+.chip { display: inline-block; font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; padding: 1px 5px; border-radius: 5px; background: var(--panel-2); color: var(--muted); align-self: flex-start; }
 .chip.structure { color: #c9d4e3; } .chip.motion { color: #7fb2ff; } .chip.hardware { color: #b9b9b9; } .chip.electronics { color: #ff8a8a; }
 .chip.pneumatics { color: #7fe0d0; } .chip.field { color: #9be38f; } .chip.manual { color: var(--gold); } .chip.element { color: #ffb36b; }
 .chip.meme { color: #d79bff; } .chip.kit { color: #ffd27f; } .chip.tools { color: #a7c0ff; }
 .slot.placeholder .imgwrap { background: var(--panel-2); }
-.slot.placeholder .imgwrap::after { content: '?'; font-family: var(--head); font-size: 64px; color: var(--line); }
+.slot.placeholder .imgwrap::after { content: '?'; font-family: var(--head); font-size: 44px; color: var(--line); }
 .slot.spinning { border-color: var(--blue); }
 .slot.locked { animation: pop .35s ease; }
 .slot.empty .imgwrap { background: repeating-linear-gradient(45deg, #151a22, #151a22 10px, #11151c 10px, #11151c 20px); }
-.slot.empty .imgwrap::after { content: 'EMPTY'; font-family: var(--head); font-weight: 700; font-size: 26px; letter-spacing: 3px; color: #3a4456; }
+.slot.empty .imgwrap::after { content: 'EMPTY'; font-family: var(--head); font-weight: 700; font-size: 18px; letter-spacing: 2px; color: #3a4456; }
 .slot.bad { border-color: var(--neg); box-shadow: 0 0 0 1px var(--neg), 0 0 24px rgba(255,107,107,.25); }
 .slot.great { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 24px rgba(242,193,78,.25); }
 @keyframes pop { 0% { transform: scale(.94); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
-.fallback { font-family: var(--head); font-weight: 700; color: #3a4456; font-size: 20px; text-align: center; padding: 10px; }
+.fallback { font-family: var(--head); font-weight: 700; color: #3a4456; font-size: 14px; text-align: center; padding: 10px; }
 
 /* image effects for memes, manuals and walls */
 .fx-dead img, .fx-lost img { filter: grayscale(1) brightness(.75); }
@@ -89,9 +88,9 @@ h3 { font-family: var(--head); font-size: 22px; margin: 28px 0 10px; }
 .fx-black img { filter: invert(1) grayscale(1); }
 .fx-black .imgwrap { background: #111; }
 .stamp { position: absolute; z-index: 2; white-space: nowrap; font-family: var(--head); font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 6px; font-size: 15px; }
-.stamp.manual { bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(13,17,23,.85); color: var(--gold); border: 1px solid var(--gold); }
-.stamp.bad { top: 42%; left: 50%; transform: translate(-50%, -50%) rotate(-14deg); background: rgba(229,56,59,.92); color: #fff; font-size: 22px; padding: 4px 14px; }
-.stamp.label { top: 8px; right: 8px; background: rgba(13,17,23,.8); color: var(--text); font-size: 12px; }
+.stamp.manual { font-size: 10px; padding: 2px 6px; bottom: 6px; left: 50%; transform: translateX(-50%); background: rgba(13,17,23,.85); color: var(--gold); border: 1px solid var(--gold); }
+.stamp.bad { top: 42%; left: 50%; transform: translate(-50%, -50%) rotate(-14deg); background: rgba(229,56,59,.92); color: #fff; font-size: 16px; padding: 2px 10px; }
+.stamp.label { top: 5px; right: 5px; padding: 1px 5px; background: rgba(13,17,23,.8); color: var(--text); font-size: 10px; }
 .fx-cracked .imgwrap::before { content: ''; position: absolute; inset: 0; z-index: 2; background:
   linear-gradient(115deg, transparent 48%, rgba(0,0,0,.85) 49%, transparent 50%),
   linear-gradient(35deg, transparent 58%, rgba(0,0,0,.8) 59%, transparent 60%),
