@@ -196,3 +196,19 @@ h3 { font-family: var(--head); font-size: 22px; margin: 28px 0 10px; }
 .pc.neg b { color: var(--neg); }
 .part-row .cx { font-family: var(--head); font-weight: 700; font-size: 18px; color: var(--gold); }
 .part-row .cx.neg { color: var(--neg); }
+
+/* phones */
+@media (max-width: 600px) {
+  .top { padding: 10px 12px; gap: 8px; }
+  .logo { font-size: 24px; }
+  nav { width: 100%; flex-wrap: nowrap; overflow-x: auto; gap: 4px; }
+  .nav-btn { padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+  main { padding: 16px 10px 60px; }
+  .slots { gap: 8px; }
+  .roll-btn { font-size: 20px; padding: 14px 30px; width: 100%; max-width: 360px; }
+  .result { padding: 14px; gap: 14px; }
+  .award-name { font-size: 28px; }
+  .total { font-size: 48px; }
+  .combo .cx, .part-row .cx { font-size: 15px; }
+  .pr-name { font-size: 12px; }
+}
