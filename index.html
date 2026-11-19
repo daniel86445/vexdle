@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VEXdle: daily VEX roll</title>
+<meta name="description" content="Roll six VEX parts, fields and manuals a day. Hit combos, earn XP, win awards.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <span class="logo">VEX<b>dle</b></span>
+    <span class="day" id="dayLabel"></span>
+  </div>
+  <nav>
+    <button class="nav-btn active" data-view="play">Roll</button>
+    <button class="nav-btn" data-view="collection">Combos <span id="foundCount" class="pill">0</span></button>
+    <button class="nav-btn" data-view="leaderboard">Leaderboard</button>
+    <button class="nav-btn" data-view="about">How to play</button>
+  </nav>
+</header>
+
+<main>
+  <!-- PLAY -->
+  <section id="view-play" class="view active">
+    <div class="slots" id="slots"></div>
+
+    <div class="controls">
+      <button id="rollBtn" class="roll-btn">Roll today's 6</button>
+      <div id="rollNote" class="roll-note">One roll per day. New roll at midnight Eastern.</div>
+      <div class="guest-note">Playing as a guest. Sign-in and the XP leaderboard come next, and only signed-in rolls will be saved.</div>
+    </div>
+
+    <div id="result" class="result hidden">
+      <div class="award" id="award">
+        <div class="award-label">Award</div>
+        <div class="award-name" id="awardName"></div>
+        <div class="award-ladder" id="awardLadder"></div>
+      </div>
+      <div class="totals">
+        <div class="total"><span id="totalXp">0</span><small>XP</small></div>
+        <div class="split"><span id="itemXp"></span> from items · <span id="comboXp"></span> from <span id="comboCount"></span> combos</div>
+        <button id="shareBtn" class="share-btn">Share result</button>
+        <div id="shareToast" class="toast">Copied to clipboard</div>
+      </div>
+      <h3 class="combo-head">Combos hit</h3>
+      <ul class="combo-list" id="comboList"></ul>
+    </div>
+  </section>
+
+  <!-- COLLECTION -->
+  <section id="view-collection" class="view">
+    <h2>Combos you've found</h2>
+    <p class="muted" id="collectionNote"></p>
+    <ul class="combo-list" id="collectionList"></ul>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section id="view-leaderboard" class="view">
+    <h2>Leaderboard</h2>
+    <p class="muted">The public XP leaderboard needs accounts, which are the next build step. Sign in with Google, roll once a day, and your XP adds up here. The day's top roll gets <b>Worlds Excellence</b>.</p>
+    <div class="board-empty">Your guest XP so far: <b id="guestXp">0</b></div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="view-about" class="view">
+    <h2>How to play</h2>
+    <ol class="how">
+      <li>You get one roll a day. Each roll fills <b>6 slots</b>.</li>
+      <li>Every slot draws from <b id="poolSize"></b> V5RC/VURC items with equal odds: parts, packs, kits, electronics, fields, game elements, game manuals and a few memes. An <b>empty slot</b> is 3× as likely as any single item.</li>
+      <li>Every item is worth a little XP. Most XP comes from <b>combos</b>, which are matches based on item type, order, price, weight, size, material, season and more. There are <b id="comboTotal"></b> combos, each worth a fixed amount of XP, and they all stack. You only see a combo once you've hit it.</li>
+      <li>Your total XP decides your award, from <i>Didn't Pass Inspection</i> up to <i>World Champion</i>. The day's #1 roll on the leaderboard gets <i>Worlds Excellence</i>.</li>
+      <li>Avoid <b>Override Game Manual v0.1</b>.</li>
+    </ol>
+    <h3>Award ladder</h3>
+    <ol class="ladder" id="ladderList"></ol>
+    <p class="muted small">Not affiliated with VEX Robotics or the REC Foundation. Product photos, names and prices are from vexrobotics.com and load from their site. Field and manual images are each game's reveal-video thumbnail.</p>
+  </section>
+</main>
+
+<script src="js/items.js"></script>
+<script src="js/combos.js"></script>
+<script src="js/combo-xp.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
