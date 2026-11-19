@@ -88,7 +88,7 @@ h3 { font-family: var(--head); font-size: 22px; margin: 28px 0 10px; }
 .fx-white .imgwrap { background: #fff; }
 .fx-black img { filter: invert(1) grayscale(1); }
 .fx-black .imgwrap { background: #111; }
-.stamp { position: absolute; z-index: 2; font-family: var(--head); font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 6px; font-size: 15px; }
+.stamp { position: absolute; z-index: 2; white-space: nowrap; font-family: var(--head); font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 6px; font-size: 15px; }
 .stamp.manual { bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(13,17,23,.85); color: var(--gold); border: 1px solid var(--gold); }
 .stamp.bad { top: 42%; left: 50%; transform: translate(-50%, -50%) rotate(-14deg); background: rgba(229,56,59,.92); color: #fff; font-size: 22px; padding: 4px 14px; }
 .stamp.label { top: 8px; right: 8px; background: rgba(13,17,23,.8); color: var(--text); font-size: 12px; }
