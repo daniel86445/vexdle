@@ -406,9 +406,7 @@
   P('pack-match', 'Same Pack Size', 'Two different packs with the same count', c => { const m = {}; c.real.filter(i => i.pack).forEach(i => { m[i.pack] = m[i.pack] || new Set(); m[i.pack].add(i.id); }); return Object.values(m).some(s => s.size >= 2); });
   P('pack-up', 'Pack Pyramid', '3+ packs getting bigger left to right', c => { const s = S(c).filter(i => i.pack).map(i => i.pack); return s.length >= 3 && strictInc(s); });
   P('pack-down', 'Pack Taper', '3+ packs getting smaller left to right', c => { const s = S(c).filter(i => i.pack).map(i => i.pack); return s.length >= 3 && strictDec(s); });
-  P('wheels-4', 'Four Wheels', '4+ wheels counting packs', c => c.real.filter(i => i.sub === 'wheel').reduce((a, i) => a + (i.pack || 1), 0) >= 4);
-  P('wheels-8', 'Eight-Wheel Drive', '8+ wheels counting packs', c => c.real.filter(i => i.sub === 'wheel').reduce((a, i) => a + (i.pack || 1), 0) >= 8);
-  P('screws-300', 'Screw Stockpile', '300+ screws counting packs', c => c.real.filter(i => i.sub === 'screw').reduce((a, i) => a + (i.pack || 1), 0) >= 300);
+  P('screws-300', 'Screw Stockpile', '300+ screws counting packs', c => c.real.filter(i => i.sub === 'screw').length >= 2 && c.real.filter(i => i.sub === 'screw').reduce((a, i) => a + (i.pack || 1), 0) >= 300);
   P('standoffs-20', 'Standoff Forest', '20+ standoffs counting packs', c => c.real.filter(i => i.sub === 'standoff').reduce((a, i) => a + (i.pack || 1), 0) >= 20);
   P('channels-10', 'Metal Order', '10+ C-channels counting packs', c => c.real.filter(i => i.sub === 'c-channel').reduce((a, i) => a + (i.pack || 1), 0) >= 10);
   P('gears-16', 'Gearbox Rebuild', '16+ gears counting packs', c => c.real.filter(i => i.sub === 'gear').reduce((a, i) => a + (i.pack || 1), 0) >= 16);

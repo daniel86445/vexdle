@@ -123,7 +123,7 @@
       tpl.innerHTML = comboHTML(h.c, h.xp, { isNew: newIds.has(h.c.id) });
       const el = tpl.content.firstElementChild; el.classList.add('appear'); if (big) el.classList.add('big');
       $('#comboList').appendChild(el);
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });  // list is column-reverse: newest (best so far) sits on top
       cx += h.xp; $('#comboXp').textContent = cx.toLocaleString(); $('#comboCount').textContent = k + 1;
       await countTo(running, running + h.xp, slow ? (big ? 700 : 350) : 150);
       running += h.xp;
@@ -139,7 +139,7 @@
     const found = Object.keys(state.found);
     $('#foundCount').textContent = found.length;
     $('#collectionNote').textContent = found.length ? `${found.length} of ${COMBOS.length} combos found. You only see a combo after you've hit it.` : `You haven't found any of the ${COMBOS.length} combos yet. Roll to start.`;
-    const list = COMBOS.filter(c => state.found[c.id]).sort((a, b) => comboXp(b) - comboXp(a));
+    const list = COMBOS.filter(c => state.found[c.id]).sort((a, b) => comboXp(a) - comboXp(b)); // column-reverse: best ends up on top
     $('#collectionList').innerHTML = list.map(c => comboHTML(c, comboXp(c), { times: state.found[c.id] })).join('');
     $('#guestXp').textContent = Object.values(state.rolls).reduce((a, r) => a + (r.total || 0), 0).toLocaleString();
   }
@@ -165,25 +165,19 @@
     renderSlots(null);
     const slotEl = k => document.querySelectorAll('.slot')[k];
     for (let k = 0; k < 6; k++) {
-      const maxDelay = slow ? 560 : 240;
-      let delay = slow ? 50 : 40, prev = null;
-      slotEl(k).classList.add('up-next');
-      await sleep(slow ? 450 : 120);
-      while (delay < maxDelay) {
+      // constant-speed spin, no slowdown
+      const tickMs = 70, spinMs = slow ? 1300 : 500;
+      const t0 = performance.now(); let prev = null;
+      while (performance.now() - t0 < spinMs) {
         let pick; do { pick = spinPool[rnd(spinPool.length)]; } while (pick === prev);
         prev = pick;
-        const tense = delay > maxDelay * 0.45 ? ' tense' : '';
-        slotEl(k).outerHTML = slotHTML(pick, k, 'spinning' + tense);
-        await sleep(delay);
-        delay *= slow ? 1.12 : 1.18;
+        slotEl(k).outerHTML = slotHTML(pick, k, 'spinning');
+        await sleep(tickMs);
       }
-      // the hesitation before it lands
-      slotEl(k).classList.add('tense');
-      await sleep(slow ? 650 : 150);
       slotEl(k).outerHTML = slotHTML(final[k], k, 'locked');
       const it = final[k];
       const special = it.xp >= 60 || it.xp < 0;
-      await sleep(slow ? (special ? 1300 : 800) : 250);
+      await sleep(slow ? (special ? 900 : 450) : 150);
     }
   }
 
