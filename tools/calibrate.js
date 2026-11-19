@@ -38,15 +38,15 @@ for (let r = 0; r < N; r++) {
   rolls.push([slots, hit]);
 }
 
-// XP from rarity: 5 * log2(1/p), at least 2. Combos never seen in the sim are "ultra rare".
-const OVERRIDE = { 'dup-4': 400, 'dup-5': 1200, 'dup-6': 5000, 'empty-4': 600, 'empty-5': 2500, 'empty-6': 10000, 'empty-3': 150,
-  'pal-item': 300, 'dup-3-3': 500, 'dup-2-2-2': 250, 'price-zero': 200, 'one-cat': 120 };
+// XP from rarity: the harder to get, the more XP. XP grows with 1/sqrt(p), so a combo that is
+// 100x rarer is worth 10x more. Combos never seen in the sim are treated as rarer than 1 in 2N.
+const OVERRIDE = { 'dup-4': 3000, 'dup-5': 10000, 'dup-6': 25000, 'empty-4': 3000, 'empty-5': 10000, 'empty-6': 25000 };
 const xpOf = {};
+const fromP = p => Math.max(2, Math.round(2.5 / Math.sqrt(p)));
 COMBOS.forEach((c, k) => {
   if (typeof c.xp === 'number') { xpOf[c.id] = c.xp; return; }
   if (OVERRIDE[c.id] != null) { xpOf[c.id] = OVERRIDE[c.id]; return; }
-  const p = hits[k] / N;
-  xpOf[c.id] = hits[k] < 5 ? 300 : Math.max(2, Math.round(5 * Math.log2(1 / p)));
+  xpOf[c.id] = fromP(hits[k] ? hits[k] / N : 1 / (2 * N));
 });
 
 // score distribution

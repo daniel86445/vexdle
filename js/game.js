@@ -83,11 +83,11 @@
   }
   function exampleHTML(ex) {
     if (!ex || !ex.length) return '';
-    return `<div class="ex"><span class="ex-l">Example</span>${ex.map(e => {
+    return `<div class="ex">${ex.map(e => {
       const it = BY_ID[e.id] || EMPTY;
       const pic = it.cat === 'empty' ? '<span class="ex-empty"></span>' : `<img src="${it.img}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`;
-      return `<span class="ex-i" title="${it.name.replace(/"/g, '&quot;')}">${pic}<span class="ex-n">${e.slot != null ? '#' + (e.slot + 1) + ' ' : ''}${it.cat === 'empty' ? 'Empty' : it.name}</span></span>`;
-    }).join('<span class="ex-plus">+</span>')}</div>`;
+      return `<span class="ex-i" title="${(e.slot != null ? 'Slot ' + (e.slot + 1) + ': ' : '') + it.name.replace(/"/g, '&quot;')}">${pic}${e.slot != null ? `<b>${e.slot + 1}</b>` : ''}</span>`;
+    }).join('')}</div>`;
   }
   function comboHTML(c, xp, opts = {}) {
     return `<li class="combo${xp < 0 ? ' neg' : ''}"><span class="cn">${c.name}${opts.isNew ? '<span class="new">NEW</span>' : ''}</span><span class="cx">${xp > 0 ? '+' : ''}${xp} XP</span><span class="cd">${c.desc}</span>${opts.times ? `<span class="times">hit ${opts.times}×</span>` : ''}${exampleHTML(opts.example)}</li>`;

@@ -185,11 +185,11 @@
   // ===== L. Override Game Manual v0.1 (the worst thing in the game) =====
   const v01 = 'override-game-manual-v0-1';
   def('v01-1', 'Day One Rules', 'Rolled Override Game Manual v0.1', c => c.cnt(v01) >= 1, -25);
-  def('v01-2', 'Q&A Spiral', 'Two copies of Override Manual v0.1', c => c.cnt(v01) >= 2, -100);
-  def('v01-3', 'Rule Change Incoming', 'Three copies of Override Manual v0.1', c => c.cnt(v01) >= 3, -250);
-  def('v01-4', 'Disqualified', 'Four copies of Override Manual v0.1', c => c.cnt(v01) >= 4, -500);
-  def('v01-5', 'Banned from the Event', 'Five copies of Override Manual v0.1', c => c.cnt(v01) >= 5, -800);
-  def('v01-6', 'The Worst Roll in VEX', 'Six copies of Override Manual v0.1. Nothing is worse.', c => c.cnt(v01) >= 6, -2000);
+  def('v01-2', 'Q&A Spiral', 'Two copies of Override Manual v0.1', c => c.cnt(v01) >= 2, -250);
+  def('v01-3', 'Rule Change Incoming', 'Three copies of Override Manual v0.1', c => c.cnt(v01) >= 3, -800);
+  def('v01-4', 'Disqualified', 'Four copies of Override Manual v0.1', c => c.cnt(v01) >= 4, -3000);
+  def('v01-5', 'Banned from the Event', 'Five copies of Override Manual v0.1', c => c.cnt(v01) >= 5, -10000);
+  def('v01-6', 'The Worst Roll in VEX', 'Six copies of Override Manual v0.1. Nothing is worse.', c => c.cnt(v01) >= 6, -25000);
   def('v01-update', 'Version Control', 'Override Manual v0.1 and the current Override manual', c => c.has(v01) && c.has('override-game-manual'));
   def('v01-field', 'Playing by Old Rules', 'Override Manual v0.1 with the Override field', c => c.has(v01) && c.has('override-field'), -10);
 
