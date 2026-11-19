@@ -59,7 +59,7 @@
     if (item.pack) stamp += `<span class="stamp label">${item.pack}-pack</span>`;
     if (item.fx === 'white') stamp += `<span class="stamp label">WHITE</span>`;
     if (item.fx === 'black') stamp += `<span class="stamp label">BLACK</span>`;
-    const why = (item.xpParts || []).map(([n, v]) => `${n} ${v >= 0 ? '+' : ''}${v}`).join(' · ');
+    const why = (item.xpParts || []).filter(([, v]) => v !== 0).map(([n, v]) => `${n} ${v >= 0 ? '+' : ''}${v}`).join(' · ');
     return `<div class="slot ${cls}${fx}${mood}" title="${why.replace(/"/g, '&quot;')} = ${item.xp} XP">
       <span class="num">${k + 1}</span>
       <div class="imgwrap${yt ? ' yt' : ''}">${stamp}<img src="${item.img}" alt="${item.name.replace(/"/g, '&quot;')}" referrerpolicy="no-referrer" loading="eager" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fallback',textContent:'${CAT_LABEL[item.cat]}'}))"></div>
@@ -92,7 +92,7 @@
   }
   function partRowHTML(item, k) {
     const pic = item.cat === 'empty' ? '<span class="ex-empty"></span>' : `<img src="${item.img}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`;
-    const chips = (item.xpParts || []).map(([n, v]) => `<span class="pc${v < 0 ? ' neg' : ''}">${n} <b>${v >= 0 ? '+' : ''}${v}</b></span>`).join('');
+    const chips = (item.xpParts || []).filter(([, v]) => v !== 0).map(([n, v]) => `<span class="pc${v < 0 ? ' neg' : ''}">${n} <b>${v >= 0 ? '+' : ''}${v}</b></span>`).join('');
     return `<li class="part-row"><span class="ex-i">${pic}<b>${k + 1}</b></span><span class="pr-main"><span class="pr-name">${item.cat === 'empty' ? 'Empty slot' : item.name}</span><span class="pr-chips">${chips}</span></span><span class="cx${item.xp < 0 ? ' neg' : ''}">${item.xp >= 0 ? '+' : ''}${item.xp}</span></li>`;
   }
   function comboHTML(c, xp, opts = {}) {
