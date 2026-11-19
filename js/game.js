@@ -51,7 +51,7 @@
     if (item.cat === 'empty') return `<div class="slot empty ${cls}"><span class="num">${k + 1}</span><div class="imgwrap"></div><div class="body"><span class="chip">Empty</span><div class="name">Empty slot</div><div class="meta"><span class="xp neg">${item.xp} XP</span></div></div></div>`;
     const yt = item.img && item.img.includes('youtube');
     const fx = item.fx ? ` fx-${item.fx}` : '';
-    const mood = item.xp < 0 ? ' bad' : item.xp >= 60 ? ' great' : '';
+    const mood = item.xp < 0 ? ' bad' : item.xp >= 120 ? ' great' : '';
     let stamp = '';
     if (item.fx === 'manual') stamp = `<span class="stamp manual">GAME MANUAL</span>`;
     if (item.fx === 'manual-bad') stamp = `<span class="stamp bad">v0.1</span><span class="stamp manual">GAME MANUAL</span>`;
@@ -59,7 +59,8 @@
     if (item.pack) stamp += `<span class="stamp label">${item.pack}-pack</span>`;
     if (item.fx === 'white') stamp += `<span class="stamp label">WHITE</span>`;
     if (item.fx === 'black') stamp += `<span class="stamp label">BLACK</span>`;
-    return `<div class="slot ${cls}${fx}${mood}">
+    const why = (item.xpParts || []).map(([n, v]) => `${n} ${v >= 0 ? '+' : ''}${v}`).join(' · ');
+    return `<div class="slot ${cls}${fx}${mood}" title="${why.replace(/"/g, '&quot;')} = ${item.xp} XP">
       <span class="num">${k + 1}</span>
       <div class="imgwrap${yt ? ' yt' : ''}">${stamp}<img src="${item.img}" alt="${item.name.replace(/"/g, '&quot;')}" referrerpolicy="no-referrer" loading="eager" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'fallback',textContent:'${CAT_LABEL[item.cat]}'}))"></div>
       <div class="body">
@@ -88,6 +89,11 @@
       const pic = it.cat === 'empty' ? '<span class="ex-empty"></span>' : `<img src="${it.img}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`;
       return `<span class="ex-i" title="${(e.slot != null ? 'Slot ' + (e.slot + 1) + ': ' : '') + it.name.replace(/"/g, '&quot;')}">${pic}${e.slot != null ? `<b>${e.slot + 1}</b>` : ''}</span>`;
     }).join('')}</div>`;
+  }
+  function partRowHTML(item, k) {
+    const pic = item.cat === 'empty' ? '<span class="ex-empty"></span>' : `<img src="${item.img}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`;
+    const chips = (item.xpParts || []).map(([n, v]) => `<span class="pc${v < 0 ? ' neg' : ''}">${n} <b>${v >= 0 ? '+' : ''}${v}</b></span>`).join('');
+    return `<li class="part-row"><span class="ex-i">${pic}<b>${k + 1}</b></span><span class="pr-main"><span class="pr-name">${item.cat === 'empty' ? 'Empty slot' : item.name}</span><span class="pr-chips">${chips}</span></span><span class="cx${item.xp < 0 ? ' neg' : ''}">${item.xp >= 0 ? '+' : ''}${item.xp}</span></li>`;
   }
   function comboHTML(c, xp, opts = {}) {
     return `<li class="combo${xp < 0 ? ' neg' : ''}"><span class="cn">${c.name}${opts.isNew ? '<span class="new">NEW</span>' : ''}</span><span class="cx">${xp > 0 ? '+' : ''}${xp} XP</span><span class="cd">${c.desc}</span>${opts.times ? `<span class="times">hit ${opts.times}×</span>` : ''}${exampleHTML(opts.example)}</li>`;
@@ -124,6 +130,7 @@
     $('#itemXp').textContent = res.itemXp;
     $('#comboXp').textContent = res.comboXp.toLocaleString();
     $('#comboCount').textContent = res.hits.length;
+    $('#partsList').innerHTML = slots.map(partRowHTML).join('');
     $('#comboList').innerHTML = res.hits.length ? res.hits.map(h => comboHTML(h.c, h.xp, { isNew: newIds.has(h.c.id), example: exampleFor(slots, h.c) })).join('') : '<li class="muted">No combos this time.</li>';
     $('#shareBtn').onclick = () => share(slots, res);
   }
@@ -135,9 +142,17 @@
     $('#comboList').innerHTML = ''; setTotal(0); setAward(0, false);
     $('#itemXp').textContent = res.itemXp; $('#comboXp').textContent = '0'; $('#comboCount').textContent = '0';
     r.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    await sleep(slow ? 900 : 400);
-    await countTo(0, res.itemXp, slow ? 900 : 400);
-    let running = res.itemXp, cx = 0;
+    $('#partsList').innerHTML = '';
+    await sleep(slow ? 700 : 300);
+    let running = 0, cx = 0;
+    for (let k = 0; k < slots.length; k++) {
+      const tpl = document.createElement('template'); tpl.innerHTML = partRowHTML(slots[k], k);
+      const el = tpl.content.firstElementChild; el.classList.add('appear');
+      $('#partsList').appendChild(el); flashSlots([k], slots[k].xp < 0);
+      await countTo(running, running + slots[k].xp, slow ? 350 : 120);
+      running += slots[k].xp;
+      await sleep(slow ? 300 : 80);
+    }
     if (!res.hits.length) $('#comboList').innerHTML = '<li class="muted">No combos this time.</li>';
     for (let k = 0; k < res.hits.length; k++) {
       const h = res.hits[k];
@@ -203,7 +218,7 @@
       }
       slotEl(k).outerHTML = slotHTML(final[k], k, 'locked');
       const it = final[k];
-      const special = it.xp >= 60 || it.xp < 0;
+      const special = it.xp >= 120 || it.xp < 0;
       await sleep(slow ? (special ? 900 : 450) : 150);
     }
   }

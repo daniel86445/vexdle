@@ -90,7 +90,7 @@
   def('unit-and-pack-2', 'Restock', 'Two parts that each appear with their own pack', c => c.real.filter(i => i.unit && c.byId[i.unit]).length >= 2);
 
   // ===== D. specific doubles for notable items =====
-  ITEMS.filter(i => i.cat !== 'empty' && i.xp >= 9 && !i.id.includes('v0-1')).forEach(i => {
+  ITEMS.filter(i => i.cat !== 'empty' && i.xp >= 40 && !i.id.includes('v0-1')).forEach(i => {
     def(`double-${i.id}`, `Double ${i.name}`, `Two ${i.name}`, c => (c.byId[i.id] || 0) >= 2);
   });
 
@@ -184,14 +184,14 @@
 
   // ===== L. Override Game Manual v0.1 (the worst thing in the game) =====
   const v01 = 'override-game-manual-v0-1';
-  def('v01-1', 'Day One Rules', 'Rolled Override Game Manual v0.1', c => c.cnt(v01) >= 1, -25);
-  def('v01-2', 'Q&A Spiral', 'Two copies of Override Manual v0.1', c => c.cnt(v01) >= 2, -250);
-  def('v01-3', 'Rule Change Incoming', 'Three copies of Override Manual v0.1', c => c.cnt(v01) >= 3, -800);
-  def('v01-4', 'Disqualified', 'Four copies of Override Manual v0.1', c => c.cnt(v01) >= 4, -3000);
-  def('v01-5', 'Banned from the Event', 'Five copies of Override Manual v0.1', c => c.cnt(v01) >= 5, -10000);
-  def('v01-6', 'The Worst Roll in VEX', 'Six copies of Override Manual v0.1. Nothing is worse.', c => c.cnt(v01) >= 6, -25000);
+  def('v01-1', 'Day One Rules', 'Rolled Override Game Manual v0.1', c => c.cnt(v01) >= 1, -100);
+  def('v01-2', 'Q&A Spiral', 'Two copies of Override Manual v0.1', c => c.cnt(v01) >= 2, -1000);
+  def('v01-3', 'Rule Change Incoming', 'Three copies of Override Manual v0.1', c => c.cnt(v01) >= 3, -5000);
+  def('v01-4', 'Disqualified', 'Four copies of Override Manual v0.1', c => c.cnt(v01) >= 4, -25000);
+  def('v01-5', 'Banned from the Event', 'Five copies of Override Manual v0.1', c => c.cnt(v01) >= 5, -100000);
+  def('v01-6', 'The Worst Roll in VEX', 'Six copies of Override Manual v0.1. Nothing is worse.', c => c.cnt(v01) >= 6, -500000);
   def('v01-update', 'Version Control', 'Override Manual v0.1 and the current Override manual', c => c.has(v01) && c.has('override-game-manual'));
-  def('v01-field', 'Playing by Old Rules', 'Override Manual v0.1 with the Override field', c => c.has(v01) && c.has('override-field'), -10);
+  def('v01-field', 'Playing by Old Rules', 'Override Manual v0.1 with the Override field', c => c.has(v01) && c.has('override-field'), -60);
 
   // ===== M. themed combos =====
   const T = (id, name, desc, test, xp) => def('t-' + id, name, desc, test, xp);
@@ -325,7 +325,7 @@
   T('trophy-meme', 'Undeserved', 'A trophy pack and a meme item', c => sub(c, 'trophy') >= 1 && cat(c, 'meme') >= 1);
   T('trophy-both', 'Trophy Case', 'Both trophy packs', c => c.has('championship-event-trophy-pack') && c.has('qualifying-event-trophy-pack'));
   T('inspection-pass', 'Passed Inspection', 'Sizing tool and license plate kit', c => c.has('on-field-robot-expansion-sizing-tool') && c.has('vex-v5-competition-license-plate-kit'));
-  T('inspection-fail', "Didn't Pass Inspection", 'Sizing tool and an oversized robot', c => c.has('on-field-robot-expansion-sizing-tool') && c.has('robot-over-the-size-limit'), -15);
+  T('inspection-fail', "Didn't Pass Inspection", 'Sizing tool and an oversized robot', c => c.has('on-field-robot-expansion-sizing-tool') && c.has('robot-over-the-size-limit'), -150);
   T('safety-first', 'Safety First', 'Safety glasses and a tool', c => c.has('vex-safety-glasses') && sub(c, 'tool') >= 1);
   T('safety-drill', 'Wear Your Glasses', 'Safety glasses and the step drill bit', c => c.has('vex-safety-glasses') && c.has('step-drill-bit'));
   T('notebook-manual', 'Did the Research', 'Engineering notebook and a game manual', c => c.has('robotics-engineering-notebook') && cat(c, 'manual') >= 1);
@@ -336,7 +336,7 @@
   T('stripped-drill', 'Extraction', 'Stripped screw and the step drill bit', c => c.has('stripped-screw') && c.has('step-drill-bit'));
   T('stripped-star', 'Should Have Used Star Drive', 'Stripped screw and a star drive key', c => c.has('stripped-screw') && c.real.some(i => i.sub === 'tool' && (i.tags || []).includes('star')));
   T('dead-brain', 'Spare Brain', 'Cracked brain and a working brain', c => c.has('brain-with-a-cracked-screen') && c.has('v5-robot-brain'));
-  T('dead-battery-2', 'Nothing Works', 'Dead battery and a disconnected controller', c => c.has('dead-battery') && c.has('controller-disconnected-mid-match'), -10);
+  T('dead-battery-2', 'Nothing Works', 'Dead battery and a disconnected controller', c => c.has('dead-battery') && c.has('controller-disconnected-mid-match'), -200);
   T('hot-motor-6', 'Thermal Throttling', 'Overheated motor and 2 other motors', c => c.has('overheated-motor') && sub(c, 'motor') >= 2);
   T('zip-hero-snap', 'Held Together by Hope', 'Zip tie hero and a snapped rubber band', c => c.has('zip-tie-holding-the-whole-robot-together') && c.has('snapped-rubber-band'));
   T('auton-forward', 'Win Point Anyway', 'Forward-only auton and a field', c => c.has('auton-that-only-drives-forward') && (sub(c, 'game-field') || c.has('full-field-setup')));
@@ -431,6 +431,120 @@
   P('electronics-parts', 'Mechatronics', '2 electronics and 2 structure or motion parts', c => cat(c, 'electronics') >= 2 && (cat(c, 'structure') + cat(c, 'motion')) >= 2);
   P('sensor-mount', 'Sensor Mount', 'A sensor next to structure', c => adjEither(c, isSub('sensor'), isCat('structure')));
 
+  // ===== H. hyper-specific =====
+  const X = (id, name, desc, test, xp) => def('x-' + id, name, desc, test, xp);
+  const TT = i => teeth(i);
+  const hasTeeth = (c, n) => c.real.some(i => TT(i) === n && i.sub === 'gear');
+  const cart = { red: 'smart-motor-36-1-cartridge-100-rpm', green: 'smart-motor-18-1-cartridge-200-rpm', blue: 'smart-motor-6-1-cartridge-600-rpm' };
+  const W11 = 'v5-smart-motor-11w', W55 = 'v5-smart-motor-5-5w';
+  const wheelOf = (c, size, tag) => c.real.some(i => i.sub === 'wheel' && i.size === size && (!tag || (i.tags || []).includes(tag)));
+  const fieldOf = k => `${k}-field`, manualOf = k => `${k}-game-manual`;
+  // drivetrain ratios people actually run
+  X('450', '450 RPM Drive', '600 RPM cartridge with a 36T and a 48T gear', c => c.has(cart.blue) && hasTeeth(c, 36) && hasTeeth(c, 48));
+  X('360', '360 RPM Drive', '600 RPM cartridge with a 36T and a 60T gear', c => c.has(cart.blue) && hasTeeth(c, 36) && hasTeeth(c, 60));
+  X('480', '480 RPM Drive', '600 RPM cartridge with a 48T and a 60T gear', c => c.has(cart.blue) && hasTeeth(c, 48) && hasTeeth(c, 60));
+  X('300', '300 RPM Drive', '600 RPM cartridge with a 24T and a 48T gear', c => c.has(cart.blue) && hasTeeth(c, 24) && hasTeeth(c, 48));
+  X('direct-200', 'Direct Drive 200', '200 RPM cartridge, 11W motor and a 4" omni', c => c.has(cart.green) && c.has(W11) && wheelOf(c, 4, 'omni'));
+  X('direct-600', 'Direct 600 on 2.75"', '600 RPM cartridge, 11W motor and a 2.75" wheel', c => c.has(cart.blue) && c.has(W11) && wheelOf(c, 2.75));
+  X('lift-7', '7:1 Lift', '100 RPM cartridge with a 12T and an 84T gear', c => c.has(cart.red) && (hasTeeth(c, 12)) && hasTeeth(c, 84));
+  X('lift-5', '5:1 Arm', '100 RPM cartridge with a 12T and a 60T gear', c => c.has(cart.red) && hasTeeth(c, 12) && hasTeeth(c, 60));
+  X('flywheel-3600', '3600 RPM Flywheel', '600 RPM cartridge, 84T and 12T gears and a flywheel weight', c => c.has(cart.blue) && hasTeeth(c, 84) && hasTeeth(c, 12) && c.real.some(i => /Flywheel Weight/.test(i.name)));
+  X('gear-pair-36-60', '3:5', '36T and 60T gears side by side', c => range(0, 4).some(k => [TT(S(c)[k]), TT(S(c)[k + 1])].sort().join() === '36,60'));
+  X('gear-pair-12-84', 'Big Reduction', '12T next to 84T', c => range(0, 4).some(k => [TT(S(c)[k]), TT(S(c)[k + 1])].sort((a, b) => a - b).join() === '12,84'));
+  X('all-hs-gears', 'Full Gear Set', '24T, 36T, 48T and 60T gears', c => [24, 36, 48, 60].every(n => hasTeeth(c, n)));
+  // motors & watts
+  X('watts-16', '16.5 Watts', 'One 11W and one 5.5W motor', c => c.cnt(W11) === 1 && c.cnt(W55) === 1);
+  X('watts-33', '33 Watts', 'Three 11W motors', c => c.cnt(W11) === 3);
+  X('watts-44', '44 Watts', 'Four 11W motors', c => c.cnt(W11) === 4);
+  X('watts-55-55', 'Half Power', 'Two 5.5W motors', c => c.cnt(W55) >= 2);
+  X('traffic-light', 'Traffic Light', 'Red cartridge, then a yellow pin, then a green cartridge, in that order', c => inOrder(c, [i => i.id === cart.red, i => i.id === 'override-yellow-yellow-pin', i => i.id === cart.green]));
+  X('rgb-order', 'RGB in Order', 'Red, green, blue cartridges left to right', c => inOrder(c, [i => i.id === cart.red, i => i.id === cart.green, i => i.id === cart.blue]));
+  X('cart-motor-pairs', 'Fully Geared', 'Two motors each right before a cartridge', c => range(0, 4).filter(k => S(c)[k].sub === 'motor' && S(c)[k + 1].sub === 'cartridge').length >= 2);
+  // Override alliances
+  X('red-alliance', 'Red Alliance', 'Red/blue pin, red/yellow pin and the red cartridge', c => c.has('override-red-blue-pin') && c.has('override-red-yellow-pin') && c.has(cart.red));
+  X('blue-alliance', 'Blue Alliance', 'Red/blue pin, blue/yellow pin and the blue cartridge', c => c.has('override-red-blue-pin') && c.has('override-blue-yellow-pin') && c.has(cart.blue));
+  X('yellow-out', 'Mellow Yellow', 'Two yellow/yellow pins', c => c.cnt('override-yellow-yellow-pin') >= 2);
+  X('pin-cup-pin', 'Pin, Cup, Pin', 'Pin, cup, pin in a row', c => range(0, 3).some(k => S(c)[k].sub === 'pin' && S(c)[k + 1].id === 'override-cup' && S(c)[k + 2].sub === 'pin'));
+  X('override-kit-split', 'Kit and Contents', 'Override scoring kit with a cup and a pin', c => c.has('override-scoring-element-kit') && c.has('override-cup') && sub(c, 'pin'));
+  X('override-everything', 'Override Everything', 'Override field, manual, kit and a pin', c => c.has('override-field') && c.has('override-game-manual') && c.has('override-full-game-field-element-kit') && sub(c, 'pin'));
+  // seasons & game history
+  X('ball-games', 'Ball Games', 'Nothing But Net and Turning Point fields', c => c.has(fieldOf('nothing-but-net')) && c.has(fieldOf('turning-point')));
+  X('ring-games', 'Lord of the Rings', 'Round Up, Tipping Point and High Stakes items', c => ['round-up', 'tipping-point', 'high-stakes'].every(k => c.bySeason[k]));
+  X('mogo-era', 'Mobile Goal Era', 'In the Zone, Tipping Point and High Stakes items', c => ['in-the-zone', 'tipping-point', 'high-stakes'].every(k => c.bySeason[k]));
+  X('cube-games', 'Cube Games', 'Skyrise and Tower Takeover items', c => c.bySeason.skyrise && c.bySeason['tower-takeover']);
+  X('covid', 'Remote Season', 'A Change Up item and two empty slots', c => c.bySeason['change-up'] && c.empties >= 2);
+  X('throwing', 'Shooting Games', 'Nothing But Net, Turning Point and Spin Up items', c => ['nothing-but-net', 'turning-point', 'spin-up'].every(k => c.bySeason[k]));
+  X('first-five', 'Founding Era', 'Items from 3 of the first 5 games', c => ['bridge-battle', 'elevation', 'clean-sweep', 'round-up', 'gateway'].filter(k => c.bySeason[k]).length >= 3);
+  X('last-five', 'Modern Era', 'Items from 4 of the last 5 games', c => ['spin-up', 'over-under', 'high-stakes', 'push-back', 'override'].filter(k => c.bySeason[k]).length >= 4);
+  X('decade', 'Ten Years Apart', 'Fields from two games exactly 10 seasons apart', c => { const s = c.real.filter(i => i.sub === 'game-field').map(i => seasonIdx[i.season]); return s.some(a => s.includes(a + 10)); });
+  X('three-in-a-row', 'Three-Peat', 'Items from three back-to-back games', c => { const s = Object.keys(c.bySeason).map(k => seasonIdx[k]); return s.some(a => s.includes(a + 1) && s.includes(a + 2)); });
+  X('manuals-chrono-3', 'Rulebook Shelf', '3 manuals in release order', c => { const s = S(c).filter(i => i.cat === 'manual' && i.id !== v01).map(i => seasonIdx[i.season]); return s.length >= 3 && strictInc(s); });
+  X('field-then-manual', 'Read After Playing', 'A field right before its own manual', c => range(0, 4).some(k => S(c)[k].sub === 'game-field' && S(c)[k + 1].cat === 'manual' && S(c)[k + 1].season === S(c)[k].season));
+  X('manual-then-field', 'Read Before Playing', 'A manual right before its own field', c => range(0, 4).some(k => S(c)[k].cat === 'manual' && S(c)[k + 1].sub === 'game-field' && S(c)[k + 1].season === S(c)[k].season && S(c)[k].id !== v01));
+  X('v01-sandwich', 'Errata', 'Override Manual v0.1 between two Override items', c => range(0, 3).some(k => S(c)[k + 1].id === v01 && S(c)[k].season === 'override' && S(c)[k + 2].season === 'override'));
+  X('v01-slot-1', 'Patch Notes Pending', 'Override Manual v0.1 in slot 1', c => S(c)[0].id === v01, -150);
+  X('v01-and-notebook', 'Documented the Confusion', 'Override Manual v0.1 and the engineering notebook', c => c.has(v01) && c.has('robotics-engineering-notebook'));
+  // sizes: real VEX numbers
+  X('18-inch', '18 Inch Robot', 'Sized parts add up to 18" (within 1/4")', c => Math.abs(c.size - 18) <= 0.25);
+  X('15-inch', '15 Inch Robot', 'Sized parts add up to 15" (within 1/4")', c => Math.abs(c.size - 15) <= 0.25);
+  X('24-inch', 'VEX U Robot', 'Sized parts add up to 24" (within 1/4")', c => Math.abs(c.size - 24) <= 0.25);
+  X('one-foot', 'One Foot', 'Sized parts add up to exactly 12"', c => Math.abs(c.size - 12) < 0.001);
+  X('one-pound', 'One Pound', 'Total weight between 0.95 and 1.05 lb', c => c.weight >= 0.95 && c.weight <= 1.05);
+  X('flush', 'Flush Fit', 'A screw and a standoff of the exact same length', c => c.real.some(a => a.sub === 'screw' && c.real.some(b => b.sub === 'standoff' && b.size === a.size)));
+  X('same-size-wheels-mixed', 'Same Size, Different Grip', 'An omni and a traction wheel of the same size', c => c.real.some(a => (a.tags || []).includes('omni') && c.real.some(b => (b.tags || []).includes('traction') && b.size === a.size)));
+  X('inch-club', 'Inch Club', 'Three parts exactly 1" long', c => c.real.filter(i => i.size === 1).length >= 3);
+  X('quarter-inch', 'Quarter Inch', 'Two 1/4" parts', c => c.real.filter(i => i.size === 0.25).length >= 2);
+  X('25-35-pair', 'Long Haul Pair', 'A 25-hole and 35-hole aluminum C-channel', c => c.real.some(i => /x25 Aluminum C/.test(i.name)) && c.real.some(i => /x35 Aluminum C/.test(i.name)));
+  X('all-c-sizes', 'C-Channel Catalog', 'Three different C-channel profiles', c => new Set(c.real.filter(i => i.sub === 'c-channel').map(i => i.name.split(' ')[0])).size >= 3);
+  X('2x-and-5x', 'Wide and Narrow', 'A 1x2x1 and a 1x5x1 C-channel', c => c.real.some(i => /^1x2x1/.test(i.name)) && c.real.some(i => /^1x5x1/.test(i.name)));
+  X('steel-al-same', 'Same Part, Two Metals', 'The same C-channel profile in steel and aluminum', c => c.real.some(a => a.sub === 'c-channel' && a.mat === 'steel' && c.real.some(b => b.sub === 'c-channel' && b.mat === 'aluminum' && b.name.split(' ')[0] === a.name.split(' ')[0])));
+  // hardware specifics
+  X('keps-star-quarter', 'Standard Joint', '1/4" star screw and a keps nut', c => c.real.some(i => /x 1\/4" Star Drive Screw/.test(i.name)) && c.real.some(i => /Keps Nut/.test(i.name)));
+  X('locking-pair', 'Loctite Not Needed', 'Locking screw and a nylock nut', c => c.real.some(i => /Locking/.test(i.name)) && c.real.some(i => /Nylock/.test(i.name)));
+  X('all-nuts', 'Nut Collection', 'Keps, nylock, hex and low profile nuts', c => ['Keps', 'Nylock', 'Hex Nut', 'Low Profile Nut'].every(n => c.real.some(i => i.sub === 'nut' && i.name.includes(n))));
+  X('screw-2-5', 'Longest Screw', 'A 2.5" screw', c => c.real.some(i => i.sub === 'screw' && i.size === 2.5));
+  X('thumbscrew', 'No Tools Needed', 'A thumbscrew and no tools', c => c.real.some(i => /Thumbscrew/.test(i.name)) && !c.real.some(i => i.cat === 'tools'));
+  X('standoff-1-2-3', 'Standoffs 1-2-3', '1", 2" and 3" standoffs', c => [1, 2, 3].every(n => c.real.some(i => i.sub === 'standoff' && i.size === n)));
+  X('washer-nylock', 'Proper Stack', 'Screw, washer, nylock in a row', c => range(0, 3).some(k => S(c)[k].sub === 'screw' && S(c)[k + 1].sub === 'washer' && /Nylock/.test(S(c)[k + 2].name)));
+  X('band-32-64', 'Both Sizes', '#32 and #64 rubber bands', c => c.real.some(i => /#32/.test(i.name)) && c.real.some(i => /#64/.test(i.name)));
+  X('zip-and-hero', 'Spare Zip Ties', 'Zip tie and the zip tie holding the robot together', c => c.real.some(i => i.sub === 'zip-tie') && c.has('zip-tie-holding-the-whole-robot-together'));
+  // electronics specifics
+  X('odom-full', 'Full Odometry', 'Two rotation sensors, inertial sensor and two omni wheels', c => c.cnt('rotation-sensor') >= 2 && c.has('inertial-sensor') && c.tag('omni') >= 1);
+  X('vision-optical', 'Seeing Double', 'AI Vision and optical sensors', c => c.has('ai-vision-sensor') && c.has('optical-sensor'));
+  X('gps-inertial', 'Sensor Fusion', 'GPS and inertial sensors', c => c.has('v5-gps-sensor') && c.has('inertial-sensor'));
+  X('distance-wall', 'Wall Reset', 'Distance sensor next to a field wall', c => adjEither(c, i => i.id === 'distance-sensor', i => i.sub === 'wall'));
+  X('battery-brain-adj', 'Plugged Together', 'Battery right next to the brain', c => adjEither(c, i => i.id === 'v5-robot-battery-li-ion-1100mah', i => i.id === 'v5-robot-brain'));
+  X('controller-last', 'Driver Ready', 'Controller in slot 6', c => S(c)[5].id === 'v5-controller');
+  X('brain-first', 'Think First', 'Brain in slot 1', c => S(c)[0].id === 'v5-robot-brain');
+  X('radio-controller', 'Paired', 'Radio and controller side by side', c => adjEither(c, i => i.id === 'v5-robot-radio', i => i.id === 'v5-controller'));
+  X('three-wire-all', '3-Wire Collection', 'Potentiometer, bumper switch and line tracker', c => ['Potentiometer', 'Bumper', 'Line Tracker'].every(n => c.real.some(i => i.name.includes(n))));
+  // field specifics
+  X('wbwb', 'Checkerboard', 'White, black, white, black walls in a row', c => range(0, 3).some(k => ['white', 'black', 'white', 'black'].every((col, d) => S(c)[k + d].id === `${col}-field-wall`)));
+  X('bw-alternate', 'Wall Pattern', 'White and black walls next to each other', c => adjEither(c, i => i.id === 'white-field-wall', i => i.id === 'black-field-wall'));
+  X('walls-ends', 'Enclosed', 'Field walls in slot 1 and slot 6', c => S(c)[0].sub === 'wall' && S(c)[5].sub === 'wall');
+  X('tiles-36', 'Exactly One Field', 'The 36-tile kit and nothing else tiled', c => c.has('anti-static-full-field-tile-kit-36-pack') && sub(c, 'tile') === 1);
+  X('field-and-sizing', 'Inspection Table', 'Field perimeter and the sizing tool', c => c.has('portable-competition-field-perimeter') && c.has('on-field-robot-expansion-sizing-tool'));
+  X('event-day', 'Event Day', 'Field perimeter, field controller and a trophy pack', c => c.has('portable-competition-field-perimeter') && c.has('smart-field-controller') && sub(c, 'trophy'));
+  X('inspection-day', 'Inspection Day', 'Sizing tool, license plates and safety glasses', c => c.has('on-field-robot-expansion-sizing-tool') && c.has('vex-v5-competition-license-plate-kit') && c.has('vex-safety-glasses'));
+  // kits & money specifics
+  X('kit-ladder', 'Kit Ladder', 'System bundle, starter kit and super kit', c => ['vex-v5-system-bundle', 'vex-v5-competition-starter-kit', 'vex-v5-competition-super-kit'].every(c.has));
+  X('ten-k', 'Ten Grand', 'Classroom Super Bundle and anything over $100', c => c.has('vex-v5-classroom-super-bundle') && c.real.some(i => i.id !== 'vex-v5-classroom-super-bundle' && i.price > 100));
+  X('cheapest-and-priciest', 'Range', 'The Classroom Super Bundle and a single rubber collar', c => c.has('vex-v5-classroom-super-bundle') && c.has('rubber-shaft-collar'));
+  X('free-six', 'All Free', 'Six manuals', c => cat(c, 'manual') === 6);
+  X('one-dollar', 'Dollar Roll', 'Six real items, total between $0.90 and $1.10', c => c.n === 6 && c.price >= 0.9 && c.price <= 1.1);
+  X('exactly-brain', 'Brain Money', 'Total price within $5 of a V5 Brain ($384.99), without the brain', c => !c.has('v5-robot-brain') && Math.abs(c.price - 384.99) <= 5);
+  // memes specifics
+  X('worst-day', 'Worst Day Ever', 'Dead battery, cracked brain and an unplugged cable', c => ['dead-battery', 'brain-with-a-cracked-screen', 'unplugged-smart-cable'].every(c.has), -400);
+  X('meme-sandwich', 'Recovered', 'A meme between a brain and a battery', c => range(0, 3).some(k => S(c)[k + 1].cat === 'meme' && [S(c)[k].id, S(c)[k + 2].id].sort().join() === ['v5-robot-battery-li-ion-1100mah', 'v5-robot-brain'].sort().join()));
+  X('forward-auton-win', 'Forward Is Enough', 'Forward-only auton and a trophy pack', c => c.has('auton-that-only-drives-forward') && sub(c, 'trophy'));
+  X('mystery-and-stripped', 'Found the Problem', 'Bag of mystery screws and a stripped screw', c => c.has('bag-of-mystery-screws') && c.has('stripped-screw'));
+  // triples of notable items (hyper-specific)
+  ITEMS.filter(i => i.cat !== 'empty' && i.xp >= 60 && i.id !== v01).forEach(i => {
+    X(`triple-${i.id}`, `Triple ${i.name}`, `Three ${i.name}`, c => (c.byId[i.id] || 0) >= 3);
+  });
+  // same item at both ends, for every category
+  Object.keys(CAT_NAMES).forEach(catk => X(`ends-${catk}`, `${CAT_NAMES[catk][0]} Bookends`, `${catk} items in slot 1 and slot 6`, c => S(c)[0].cat === catk && S(c)[5].cat === catk));
+
   // ===== N. pieces & packs =====
   def('packs-3', 'Bulk Order', '3+ multi-packs', c => c.tag('pack') >= 3);
   def('packs-6', 'Warehouse', 'Six multi-packs', c => c.tag('pack') >= 6);
@@ -440,8 +554,8 @@
   def('kits-3', 'Kit Bash', '3+ kits', c => c.tag('kit') >= 3);
   def('sku-276-6', 'Catalog Regular', 'Six items with 276- SKUs', c => c.real.filter(i => /^276-/.test(i.sku || '')).length >= 6);
   def('sku-275-3', 'Classic SKUs', '3 items with 275- SKUs', c => c.real.filter(i => /^275-/.test(i.sku || '')).length >= 3);
-  def('negative-items', 'Down Bad', '3 items worth negative XP', c => c.real.filter(i => i.xp < 0).length >= 3, -20);
-  def('xp-items-high', 'All Stars', 'Every real item worth 20+ XP on its own', c => c.n === 6 && c.real.every(i => i.xp >= 20));
+  def('negative-items', 'Down Bad', '3 items worth negative XP', c => c.real.filter(i => i.xp < 0).length >= 3, -300);
+  def('xp-items-high', 'All Stars', 'Every real item worth 80+ XP on its own', c => c.n === 6 && c.real.every(i => i.xp >= 80));
 
   root.VEX_COMBOS = C;
   root.VEX_buildCtx = buildCtx;

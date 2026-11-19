@@ -47,6 +47,8 @@
         <button id="shareBtn" class="share-btn">Share result</button>
         <div id="shareToast" class="toast">Copied to clipboard</div>
       </div>
+      <h3 class="combo-head">How your parts scored</h3>
+      <ul class="parts-list" id="partsList"></ul>
       <h3 class="combo-head">Combos hit</h3>
       <ul class="combo-list" id="comboList"></ul>
     </div>
@@ -72,7 +74,8 @@
     <ol class="how">
       <li>You get one roll a day. Each roll fills <b>6 slots</b>.</li>
       <li>Every slot draws from <b id="poolSize"></b> V5RC/VURC items with equal odds: parts, packs, kits, electronics, fields, game elements, game manuals and a few memes. An <b>empty slot</b> is 3× as likely as any single item.</li>
-      <li>Every item is worth a little XP. Most XP comes from <b>combos</b>, which are matches based on item type, order, price, weight, size, material, season and more. There are <b id="comboTotal"></b> combos, each worth a fixed amount of XP, and they all stack. You only see a combo once you've hit it.</li>
+      <li>Every part earns XP from a simple formula: a <b>category base</b> (hardware 5, structure and motion 10, electronics 30, fields and kits 40…) plus bonuses for <b>aluminum</b>, <b>high strength</b>, <b>value</b>, <b>pack size</b>, the <b>current season</b> and <b>vintage</b> fields and manuals. Memes and Manual v0.1 cost XP. Hover any card, or check "How your parts scored," to see the math.</li>
+      <li>Most XP comes from <b>combos</b>, which are matches based on item type, order, price, weight, size, material, season and more. There are <b id="comboTotal"></b> combos, each worth a fixed amount of XP, and they all stack. The rarer a combo, the more it's worth. You only see a combo once you've hit it.</li>
       <li>Your total XP decides your award, from <i>Didn't Pass Inspection</i> up to <i>World Champion</i>. The day's #1 roll on the leaderboard gets <i>Worlds Excellence</i>.</li>
       <li>Avoid <b>Override Game Manual v0.1</b>.</li>
     </ol>
@@ -83,6 +86,7 @@
 </main>
 
 <script src="js/items.js"></script>
+<script src="js/xp.js"></script>
 <script src="js/combos.js"></script>
 <script src="js/combo-xp.js"></script>
 <script src="js/game.js"></script>

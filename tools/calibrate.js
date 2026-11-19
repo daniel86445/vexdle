@@ -8,15 +8,15 @@ const ROOT = path.join(__dirname, '..');
 const ctx = { window: {} };
 ctx.globalThis = ctx.window;
 vm.createContext(ctx);
-for (const f of ['js/items.js', 'js/combos.js']) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/typeof window !== 'undefined' \? window : globalThis/, 'window'), ctx);
+for (const f of ['js/items.js', 'js/xp.js', 'js/combos.js']) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/typeof window !== 'undefined' \? window : globalThis/, 'window'), ctx);
 const W = ctx.window;
 const ITEMS = W.VEX_ITEMS, COMBOS = W.VEX_COMBOS, buildCtx = W.VEX_buildCtx;
 
 // sanity: every id string referenced in combos.js must exist
 const src = fs.readFileSync(path.join(ROOT, 'js/combos.js'), 'utf8');
 const ids = new Set(ITEMS.map(i => i.id));
-const refs = [...src.matchAll(/(?:has|cnt)\('([a-z0-9-]+)'\)|'([a-z0-9-]+-(?:pin|cartridge-\d+-rpm|field-wall|cylinder))'/g)].map(m => m[1] || m[2]);
-const listRefs = [...src.matchAll(/\[((?:'[a-z0-9-]+',?\s*)+)\]\.every/g)].flatMap(m => [...m[1].matchAll(/'([a-z0-9-]+)'/g)].map(x => x[1]));
+const refs = [...src.matchAll(/(?:has|cnt)\('([a-z0-9-]+)'\)|i\.id === '([a-z0-9-]+)'/g)].map(m => m[1] || m[2]);
+const listRefs = [...src.matchAll(/\[((?:'[a-z0-9-]+',?\s*)+)\]\.every\(c\.has\)/g)].flatMap(m => [...m[1].matchAll(/'([a-z0-9-]+)'/g)].map(x => x[1]));
 const missing = [...new Set([...refs, ...listRefs])].filter(r => !ids.has(r));
 if (missing.length) { console.error('Unknown item ids in combos.js:', missing); process.exit(1); }
 const cids = COMBOS.map(c => c.id); const dup = cids.filter((x, k) => cids.indexOf(x) !== k);
@@ -38,11 +38,11 @@ for (let r = 0; r < N; r++) {
   rolls.push([slots, hit]);
 }
 
-// XP from rarity: the harder to get, the more XP. XP grows with 1/sqrt(p), so a combo that is
-// 100x rarer is worth 10x more. Combos never seen in the sim are treated as rarer than 1 in 2N.
-const OVERRIDE = { 'dup-4': 3000, 'dup-5': 10000, 'dup-6': 25000, 'empty-4': 3000, 'empty-5': 10000, 'empty-6': 25000 };
+// XP from rarity: the harder to get, the more XP. XP grows with 1/p^0.55, so a combo that is
+// 100x rarer is worth about 12.6x more. Combos never seen in the sim are treated as rarer than 1 in 2N.
+const OVERRIDE = { 'dup-4': 25000, 'dup-5': 100000, 'dup-6': 500000, 'empty-4': 25000, 'empty-5': 100000, 'empty-6': 500000 };
 const xpOf = {};
-const fromP = p => Math.max(2, Math.round(2.5 / Math.sqrt(p)));
+const fromP = p => Math.max(5, Math.round(10 / Math.pow(p, 0.55)));
 COMBOS.forEach((c, k) => {
   if (typeof c.xp === 'number') { xpOf[c.id] = c.xp; return; }
   if (OVERRIDE[c.id] != null) { xpOf[c.id] = OVERRIDE[c.id]; return; }
