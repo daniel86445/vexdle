@@ -168,3 +168,16 @@ h3 { font-family: var(--head); font-size: 22px; margin: 28px 0 10px; }
 .result.revealing .award-name { color: var(--muted); }
 .award.revealed .award-name { animation: awardIn .8s cubic-bezier(.2,1.5,.4,1); color: var(--gold); }
 @keyframes awardIn { 0% { transform: scale(.6); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+/* combo examples */
+.combo .ex { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line); }
+.combo .ex-l { font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-right: 2px; }
+.combo .ex-i { display: inline-flex; align-items: center; gap: 5px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px 2px 2px; max-width: 220px; }
+.combo .ex-i img, .combo .ex-empty { width: 24px; height: 24px; border-radius: 4px; object-fit: cover; background: #fff; flex: none; }
+.combo .ex-empty { background: repeating-linear-gradient(45deg, #151a22, #151a22 4px, #222a36 4px, #222a36 8px); }
+.combo .ex-n { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.combo .ex-plus { color: var(--muted); font-size: 12px; }
+.slot.flash { animation: flash .9s ease-out; }
+.slot.flash-bad { animation: flashBad .9s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 3px var(--gold), 0 0 26px var(--gold); transform: translateY(-4px); } 100% { box-shadow: none; transform: none; } }
+@keyframes flashBad { 0% { box-shadow: 0 0 0 3px var(--neg), 0 0 26px var(--neg); transform: translateY(-4px); } 100% { box-shadow: none; transform: none; } }

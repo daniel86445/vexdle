@@ -24,7 +24,7 @@
   // ---------- storage ----------
   function load() { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { return {}; } }
   function save(s) { if (DEBUG) return; try { localStorage.setItem(STORE, JSON.stringify(s)); } catch (e) { } }
-  const state = Object.assign({ rolls: {}, found: {} }, load());
+  const state = Object.assign({ rolls: {}, found: {}, examples: {} }, load());
 
   // ---------- rolling ----------
   function rnd(n) { const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }
@@ -70,9 +70,29 @@
   }
   const renderSlots = (slots, cls) => { $('#slots').innerHTML = Array.from({ length: 6 }, (_, k) => slotHTML(slots && slots[k], k, cls)).join(''); };
 
-  function comboHTML(c, xp, opts = {}) {
-    return `<li class="combo${xp < 0 ? ' neg' : ''}"><span class="cn">${c.name}${opts.isNew ? '<span class="new">NEW</span>' : ''}</span><span class="cx">${xp > 0 ? '+' : ''}${xp}</span><span class="cd">${c.desc}</span>${opts.times ? `<span class="times">hit ${opts.times}×</span>` : ''}</li>`;
+  // Which slots made a combo happen: swap each slot for a blank stand-in and see if the combo breaks.
+  const STANDIN = { id: '_standin', name: '~', cat: '_none', sub: '_none', xp: 0, tags: [], price: 0, weight: 0 };
+  function keySlots(slots, combo) {
+    // greedy: blank out every slot the combo doesn't need; whatever is left is the smallest set that still triggers it
+    const s2 = slots.slice(); const keep = [];
+    for (let k = 0; k < s2.length; k++) {
+      const orig = s2[k]; s2[k] = STANDIN;
+      if (!combo.test(buildCtx(s2))) { s2[k] = orig; keep.push(k); }
+    }
+    return keep.length ? keep : slots.map((_, k) => k).filter(k => slots[k].cat !== 'empty');
   }
+  function exampleHTML(ex) {
+    if (!ex || !ex.length) return '';
+    return `<div class="ex"><span class="ex-l">Example</span>${ex.map(e => {
+      const it = BY_ID[e.id] || EMPTY;
+      const pic = it.cat === 'empty' ? '<span class="ex-empty"></span>' : `<img src="${it.img}" alt="" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`;
+      return `<span class="ex-i" title="${it.name.replace(/"/g, '&quot;')}">${pic}<span class="ex-n">${e.slot != null ? '#' + (e.slot + 1) + ' ' : ''}${it.cat === 'empty' ? 'Empty' : it.name}</span></span>`;
+    }).join('<span class="ex-plus">+</span>')}</div>`;
+  }
+  function comboHTML(c, xp, opts = {}) {
+    return `<li class="combo${xp < 0 ? ' neg' : ''}"><span class="cn">${c.name}${opts.isNew ? '<span class="new">NEW</span>' : ''}</span><span class="cx">${xp > 0 ? '+' : ''}${xp} XP</span><span class="cd">${c.desc}</span>${opts.times ? `<span class="times">hit ${opts.times}×</span>` : ''}${exampleHTML(opts.example)}</li>`;
+  }
+  const exampleFor = (slots, c) => keySlots(slots, c).map(k => ({ id: slots[k].id, slot: k }));
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const tierOf = total => { let t = 0; TIERS.forEach((x, k) => { if (x.min == null || total >= x.min) t = k; }); return t; };
@@ -91,6 +111,11 @@
     }
   }
 
+  function flashSlots(ks, bad) {
+    const els = document.querySelectorAll('#slots .slot');
+    ks.forEach(k => { const el = els[k]; if (!el) return; el.classList.remove('flash', 'flash-bad'); void el.offsetWidth; el.classList.add(bad ? 'flash-bad' : 'flash'); });
+  }
+
   // Static result (page reload): everything at once.
   function renderResult(slots, res, newIds = new Set()) {
     $('#result').classList.remove('hidden', 'revealing');
@@ -99,7 +124,7 @@
     $('#itemXp').textContent = res.itemXp;
     $('#comboXp').textContent = res.comboXp.toLocaleString();
     $('#comboCount').textContent = res.hits.length;
-    $('#comboList').innerHTML = res.hits.length ? res.hits.map(h => comboHTML(h.c, h.xp, { isNew: newIds.has(h.c.id) })).join('') : '<li class="muted">No combos this time.</li>';
+    $('#comboList').innerHTML = res.hits.length ? res.hits.map(h => comboHTML(h.c, h.xp, { isNew: newIds.has(h.c.id), example: exampleFor(slots, h.c) })).join('') : '<li class="muted">No combos this time.</li>';
     $('#shareBtn').onclick = () => share(slots, res);
   }
 
@@ -120,7 +145,9 @@
       const big = h.xp >= 100 || h.xp <= -100;
       await sleep(slow ? (last ? 1400 : big ? 1100 : 650) : 250);
       const tpl = document.createElement('template');
-      tpl.innerHTML = comboHTML(h.c, h.xp, { isNew: newIds.has(h.c.id) });
+      const ex = exampleFor(slots, h.c);
+      tpl.innerHTML = comboHTML(h.c, h.xp, { isNew: newIds.has(h.c.id), example: ex });
+      flashSlots(ex.map(e => e.slot), h.xp < 0);
       const el = tpl.content.firstElementChild; el.classList.add('appear'); if (big) el.classList.add('big');
       $('#comboList').appendChild(el);
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });  // list is column-reverse: newest (best so far) sits on top
@@ -140,7 +167,7 @@
     $('#foundCount').textContent = found.length;
     $('#collectionNote').textContent = found.length ? `${found.length} of ${COMBOS.length} combos found. You only see a combo after you've hit it.` : `You haven't found any of the ${COMBOS.length} combos yet. Roll to start.`;
     const list = COMBOS.filter(c => state.found[c.id]).sort((a, b) => comboXp(a) - comboXp(b)); // column-reverse: best ends up on top
-    $('#collectionList').innerHTML = list.map(c => comboHTML(c, comboXp(c), { times: state.found[c.id] })).join('');
+    $('#collectionList').innerHTML = list.map(c => comboHTML(c, comboXp(c), { times: state.found[c.id], example: state.examples[c.id] })).join('');
     $('#guestXp').textContent = Object.values(state.rolls).reduce((a, r) => a + (r.total || 0), 0).toLocaleString();
   }
 
@@ -186,7 +213,10 @@
     const res = score(slots);
     const newIds = new Set(res.hits.filter(h => !state.found[h.c.id]).map(h => h.c.id));
     // save first, so a refresh mid-animation can't give a second daily roll
-    res.hits.forEach(h => { state.found[h.c.id] = (state.found[h.c.id] || 0) + 1; });
+    res.hits.forEach(h => {
+      state.found[h.c.id] = (state.found[h.c.id] || 0) + 1;
+      if (!state.examples[h.c.id]) state.examples[h.c.id] = exampleFor(slots, h.c).map(e => ({ id: e.id }));
+    });
     if (!UNLIMITED) state.rolls[TODAY] = { ids: slots.map(s => s.id), total: res.total, tier: res.tier };
     save(state);
     const slow = !DEBUG; // the daily roll takes its time
